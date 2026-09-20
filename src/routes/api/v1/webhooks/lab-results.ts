@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { verifyWebhookSignature } from "@/lib/compliance/hmac";
 import { nextPendingDriver, pushEvent, updateDriverStatus, upsertDriver } from "@/lib/compliance/store";
 import type { ScreeningStatus, WebhookPayload } from "@/lib/compliance/types";
+import { getLabVendorProvider } from "@/lib/vendors/adapter";
 
 function mapStatus(input: WebhookPayload["status"]): ScreeningStatus {
   if (input === "NEGATIVE") return "CLEARED";
@@ -10,6 +11,14 @@ function mapStatus(input: WebhookPayload["status"]): ScreeningStatus {
   if (input === "COLLECTION_COMPLETE") return "COLLECTION_COMPLETE";
   if (input === "CLEARED" || input === "EXCEPTION" || input === "COLLECTION_PENDING") return input;
   return "CLEARED";
+}
+
+function mapVendorEvent(eventType: string): ScreeningStatus {
+  if (eventType === "result.negative") return "CLEARED";
+  if (eventType === "result.positive" || eventType === "process.exception") return "EXCEPTION";
+  if (eventType === "mro.hold") return "MRO_HOLD";
+  if (eventType === "collection.completed") return "COLLECTION_COMPLETE";
+  return "COLLECTION_PENDING";
 }
 
 export const Route = createFileRoute("/api/v1/webhooks/lab-results")({
@@ -31,36 +40,47 @@ export const Route = createFileRoute("/api/v1/webhooks/lab-results")({
           return Response.json({ error: "Invalid JSON payload" }, { status: 400 });
         }
 
-        const nextStatus = mapStatus(body.status);
-        let driver = updateDriverStatus(
-          { id: body.driverId ?? body.orderId, barcode: body.barcode },
+        let parsed;
+        try {
+          parsed = await getLabVendorProvider().parseWebhook(
+            new Request(request.url, { method: "POST", headers: request.headers, body: raw }),
+          );
+        } catch {
+          return Response.json({ error: "Invalid vendor webhook payload" }, { status: 400 });
+        }
+
+        const accountId = process.env.COMPLIANCE_ACCOUNT_ID ?? "SJCC-DEMO";
+        const nextStatus = body.status ? mapStatus(body.status) : mapVendorEvent(parsed.eventType);
+        let driver = await updateDriverStatus(
+          accountId,
+          { id: body.driverId ?? parsed.externalOrderId, barcode: body.barcode },
           nextStatus,
         );
 
         if (!driver) {
-          const pending = nextPendingDriver();
+          const pending = await nextPendingDriver(accountId);
           if (pending) {
-            driver = updateDriverStatus({ id: pending.id }, nextStatus);
+            driver = await updateDriverStatus(accountId, { id: pending.id }, nextStatus);
           }
         }
 
-        if (!driver && body.orderId) {
-          driver = upsertDriver({
-            id: body.orderId,
+        if (!driver && parsed.externalOrderId) {
+          driver = await upsertDriver(accountId, {
+            id: parsed.externalOrderId,
             name: "Inbound Screening Record",
             cdl: "UNKNOWN",
-            testType: "DOT_5_PANEL",
+            testType: "5_PANEL",
             status: nextStatus,
-            barcode: body.barcode ?? `SJ-${body.orderId.slice(-8).toUpperCase()}`,
+            barcode: body.barcode ?? `SJ-${parsed.externalOrderId.slice(-8).toUpperCase()}`,
             updatedAt: new Date().toISOString(),
           });
         }
 
-        pushEvent({
+        await pushEvent(accountId, {
           source: "WEBHOOK",
           path: "/api/v1/webhooks/lab-results",
           payload: {
-            event: body.event ?? "mro.result",
+            event: parsed.eventType,
             status: nextStatus,
             inbound: body,
             driver,

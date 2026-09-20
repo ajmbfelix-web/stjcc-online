@@ -5,7 +5,7 @@ export type ScreeningStatus =
   | "MRO_HOLD"
   | "EXCEPTION";
 
-export type TestType = "DOT_5_PANEL" | "BACKGROUND_CHECK" | "BREATH_ALCOHOL";
+export type TestType = "5_PANEL" | "9_PANEL" | "10_PANEL" | "BAT" | "HAIR" | "MVR";
 
 export type DriverRecord = {
   id: string;

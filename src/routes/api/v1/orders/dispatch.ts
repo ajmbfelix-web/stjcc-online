@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { pushEvent, upsertDriver } from "@/lib/compliance/store";
 import type { DriverRecord, OrderRequest, TestType } from "@/lib/compliance/types";
 import { getSessionUser } from "@/lib/auth/verify.server";
+import { getLabVendorProvider } from "@/lib/vendors/adapter";
 
 export const Route = createFileRoute("/api/v1/orders/dispatch")({
   server: {
@@ -21,11 +22,14 @@ export const Route = createFileRoute("/api/v1/orders/dispatch")({
         }
 
         const accountId = process.env.COMPLIANCE_ACCOUNT_ID ?? body.accountId ?? "SJCC-DEMO";
-        const testType: TestType = body.testType ?? "DOT_5_PANEL";
+        const testType: TestType = body.testType ?? "5_PANEL";
         const orderId = `ord_${Date.now().toString(36)}`;
-        const barcode = `SJ-${Math.random().toString(16).slice(2, 6).toUpperCase()}-${Math.floor(
-          1000 + Math.random() * 9000,
-        )}`;
+        const provider = getLabVendorProvider();
+        const vendorOrder = await provider.createOrder({
+          driverId: orderId,
+          testType,
+          orgId: accountId,
+        });
 
         const driver: DriverRecord = {
           id: orderId,
@@ -33,11 +37,11 @@ export const Route = createFileRoute("/api/v1/orders/dispatch")({
           cdl: body.driver?.cdl ?? "PENDING-CDL",
           testType,
           status: "COLLECTION_PENDING",
-          barcode,
+          barcode: vendorOrder.externalOrderId,
           updatedAt: new Date().toISOString(),
         };
 
-        upsertDriver(driver);
+        await upsertDriver(accountId, driver);
 
         const payload = {
           accepted: true,
@@ -45,7 +49,9 @@ export const Route = createFileRoute("/api/v1/orders/dispatch")({
           integrationConfigured: Boolean(process.env.COMPLIANCE_API_KEY),
           order: {
             orderId,
-            barcode,
+            barcode: vendorOrder.externalOrderId,
+            barcodeUrl: vendorOrder.barcodeUrl,
+            externalOrderId: vendorOrder.externalOrderId,
             status: driver.status,
             testType,
             collectionNetwork: body.collectionNetwork ?? "SAMHSA_CERTIFIED_NETWORK",
@@ -54,7 +60,7 @@ export const Route = createFileRoute("/api/v1/orders/dispatch")({
           },
         };
 
-        const event = pushEvent({
+        const event = await pushEvent(accountId, {
           source: "ORDER_DISPATCH",
           path: "/api/v1/orders/dispatch",
           payload,

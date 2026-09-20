@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   Activity,
@@ -38,7 +38,7 @@ const seed: DriverRecord[] = [
     id: "drv_01",
     name: "Record A",
     cdl: "REDACTED",
-    testType: "DOT_5_PANEL",
+    testType: "5_PANEL",
     status: "COLLECTION_PENDING",
     barcode: "INTERNAL",
     updatedAt: "2026-09-19T18:12:00.000Z",
@@ -47,7 +47,7 @@ const seed: DriverRecord[] = [
     id: "drv_02",
     name: "Record B",
     cdl: "REDACTED",
-    testType: "DOT_5_PANEL",
+    testType: "5_PANEL",
     status: "CLEARED",
     barcode: "INTERNAL",
     updatedAt: "2026-09-18T14:41:00.000Z",
@@ -56,7 +56,7 @@ const seed: DriverRecord[] = [
     id: "drv_03",
     name: "Record C",
     cdl: "REDACTED",
-    testType: "BACKGROUND_CHECK",
+    testType: "MVR",
     status: "EXCEPTION",
     barcode: "INTERNAL",
     updatedAt: "2026-09-17T09:05:00.000Z",
@@ -65,7 +65,7 @@ const seed: DriverRecord[] = [
     id: "drv_04",
     name: "Record D",
     cdl: "REDACTED",
-    testType: "DOT_5_PANEL",
+    testType: "5_PANEL",
     status: "COLLECTION_PENDING",
     barcode: "INTERNAL",
     updatedAt: "2026-09-19T16:28:00.000Z",
@@ -74,7 +74,7 @@ const seed: DriverRecord[] = [
     id: "drv_05",
     name: "Record E",
     cdl: "REDACTED",
-    testType: "BACKGROUND_CHECK",
+    testType: "MVR",
     status: "CLEARED",
     barcode: "INTERNAL",
     updatedAt: "2026-09-16T21:10:00.000Z",
@@ -93,9 +93,12 @@ function labelStatus(status: ScreeningStatus) {
 }
 
 function labelTest(type: DriverRecord["testType"]) {
-  if (type === "DOT_5_PANEL") return "DOT 5-Panel";
-  if (type === "BREATH_ALCOHOL") return "Breath Alcohol";
-  return "Background Check";
+  if (type === "5_PANEL") return "5-Panel";
+  if (type === "9_PANEL") return "9-Panel";
+  if (type === "10_PANEL") return "10-Panel";
+  if (type === "BAT") return "Breath Alcohol";
+  if (type === "HAIR") return "Hair";
+  return "MVR";
 }
 
 function Dashboard() {
@@ -115,6 +118,33 @@ function Dashboard() {
   ]);
   const [busy, setBusy] = useState<"order" | "hook" | null>(null);
 
+  useEffect(() => {
+    let active = true;
+    const token = getBearerToken();
+
+    fetch("/api/v1/dashboard", {
+      headers: token ? { authorization: `Bearer ${token}` } : undefined,
+    })
+      .then(async (res) => {
+        const json = (await res.json()) as {
+          drivers?: DriverRecord[];
+          events?: WebhookEvent[];
+          error?: string;
+        };
+        if (!res.ok) throw new Error(json.error ?? "Dashboard data unavailable");
+        if (!active) return;
+        setDrivers(json.drivers ?? []);
+        setEvents(json.events ?? []);
+      })
+      .catch((err: unknown) => {
+        if (active) toast.error(err instanceof Error ? err.message : "Dashboard data unavailable");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   async function simulateOrder() {
     setBusy("order");
     try {
@@ -124,7 +154,7 @@ function Dashboard() {
           name: "Demo Driver",
           cdl: "REDACTED",
         },
-        testType: "DOT_5_PANEL",
+        testType: "5_PANEL",
         collectionNetwork: "SAMHSA_CERTIFIED_NETWORK",
         callbackUrl: "https://stjcc.online/api/v1/webhooks/lab-results",
       };
