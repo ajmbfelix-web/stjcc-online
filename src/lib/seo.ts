@@ -71,7 +71,7 @@ export const jsonLdGraph = {
           name: "What does St. Joseph Compliance Company do?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "SJCC automates DOT compliance for micro-fleets: background checks, MVRs, DOT 5-Panel and breath alcohol testing, consortium (C-TPA) random pools, FMCSA Clearinghouse events, and digital clinic passes at stjcc.online.",
+            text: "SJCC operates an independent DOT compliance platform for employers, combining drug and alcohol testing, background screening, real-time MVR checks, automated random pool management, CDL Clearinghouse queries, and digital clinic pass generation.",
           },
         },
         {
@@ -84,7 +84,7 @@ export const jsonLdGraph = {
         },
         {
           "@type": "Question",
-          name: "Which collection networks does SJCC support?",
+          name: "How does SJCC support nationwide collections?",
           acceptedAnswer: {
             "@type": "Answer",
             text: "Services include 5-, 9-, and 10-panel urine testing, hair follicle testing, breath alcohol testing, DOT-regulated panels, background screening, and MVRs.",

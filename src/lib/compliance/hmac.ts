@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 export function verifyWebhookSignature(rawBody: string, signatureHeader: string | null): boolean {
-  const secret = process.env.LTS_WEBHOOK_SECRET;
+  const secret = process.env.COMPLIANCE_WEBHOOK_SECRET;
   if (!secret || secret === "your_webhook_secret") {
     return true;
   }

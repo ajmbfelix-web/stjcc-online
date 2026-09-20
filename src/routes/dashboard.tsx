@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SignInButtons, SignInGate } from "@/lib/auth/gates";
 import { getBearerToken } from "@/lib/auth/client";
-import type { DriverRecord, ScreeningStatus, WebhookEvent } from "@/lib/lts/types";
+import type { DriverRecord, ScreeningStatus, WebhookEvent } from "@/lib/compliance/types";
 import { canonical, pageTitle } from "@/lib/seo";
 
 export const Route = createFileRoute("/dashboard")({
@@ -105,11 +105,11 @@ function Dashboard() {
       id: "evt_boot",
       receivedAt: "2026-09-19T12:00:00.000Z",
       source: "SYSTEM",
-      path: "/api/lts/webhook",
+      path: "/api/v1/webhooks/lab-results",
       payload: {
         event: "listener.ready",
         partner: "stjcc",
-        message: "LTS webhook listener armed. Awaiting sandbox callbacks.",
+        message: "Lab-results listener ready. Awaiting certified network callbacks.",
       },
     },
   ]);
@@ -119,18 +119,17 @@ function Dashboard() {
     setBusy("order");
     try {
       const body = {
-        partnerId: "STJCC-POC",
+        accountId: "SJCC-DEMO",
         driver: {
-          name: "Ava Lindholm",
-          cdl: "WA-4409127",
-          dob: "1989-04-12",
+          name: "Demo Driver",
+          cdl: "REDACTED",
         },
         testType: "DOT_5_PANEL",
-        collectionNetwork: "QUEST_LABCORP",
-        callbackUrl: "https://stjcc.online/api/lts/webhook",
+        collectionNetwork: "SAMHSA_CERTIFIED_NETWORK",
+        callbackUrl: "https://stjcc.online/api/v1/webhooks/lab-results",
       };
       const token = getBearerToken();
-      const res = await fetch("/api/lts/order-test", {
+      const res = await fetch("/api/v1/orders/dispatch", {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -148,7 +147,7 @@ function Dashboard() {
         setDrivers((prev) => [json.order!.driver, ...prev.filter((d) => d.id !== json.order!.driver.id)]);
       }
       if (json.event) setEvents((prev) => [json.event!, ...prev]);
-      toast.success("LTS order dispatched");
+      toast.success("Compliance order dispatched");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Dispatch failed");
     } finally {
@@ -172,7 +171,7 @@ function Dashboard() {
         mroReviewedAt: new Date().toISOString(),
       };
       const token = getBearerToken();
-      const res = await fetch("/api/lts/webhook", {
+      const res = await fetch("/api/v1/webhooks/lab-results", {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -235,20 +234,20 @@ function Dashboard() {
         <section className="rounded-xl border border-border bg-card p-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-xl font-medium">LTS API simulation</h1>
+              <h1 className="text-xl font-medium">Compliance engine simulation</h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                Exercise order dispatch and signed webhook ingest against live POC
-                routes. Ready for LTS sandbox pairing.
+                Exercise dispatch and certified lab-result processing against simulated
+                routes. No client records are used in this workspace.
               </p>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
               <Button onClick={simulateOrder} disabled={busy !== null}>
                 {busy === "order" ? <Loader2 className="size-4 animate-spin" /> : <Radio className="size-4" />}
-                Simulate LTS Order Dispatch
+                Simulate Order Dispatch
               </Button>
               <Button variant="outline" onClick={simulateWebhook} disabled={busy !== null}>
                 {busy === "hook" ? <Loader2 className="size-4 animate-spin" /> : <Webhook className="size-4" />}
-                Simulate LTS Webhook Callback
+                Simulate Lab Result Callback
               </Button>
             </div>
           </div>

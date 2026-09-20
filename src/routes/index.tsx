@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, ClipboardCheck, FileCheck2, FlaskConical, ShieldCheck } from "lucide-react";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { ProductShowcase } from "@/components/product-showcase";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { canonical, DEFAULT_DESCRIPTION, pageTitle } from "@/lib/seo";
@@ -22,7 +23,7 @@ const services = [
   {
     icon: FlaskConical,
     title: "Drug and alcohol testing",
-    body: "5-, 9-, and 10-panel urine testing, hair follicle testing, breath alcohol testing, and DOT-regulated panels.",
+    body: "5-, 9-, and 10-panel urine testing, hair follicle testing, breath alcohol testing, and DOT-regulated panels through a SAMHSA-certified lab network.",
   },
   {
     icon: FileCheck2,
@@ -86,12 +87,12 @@ function Home() {
               Straightforward compliance support for employers and fleets
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              We manage the testing, screening, motor vehicle records, and consortium
-              workflows that help employers stay ready for DOT and workplace requirements.
+              Our proprietary compliance engine manages testing, screening, real-time MVR
+              checks, random pools, and digital clinic passes for DOT-ready operations.
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg">
-                <Link to="/dashboard">
+                <Link to="/contact">
                   Request a consultation
                   <ArrowRight className="size-4" />
                 </Link>
@@ -179,6 +180,8 @@ function Home() {
 
           </div>
         </section>
+
+        <ProductShowcase />
 
         <section id="faq" className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
           <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">FAQ</p>

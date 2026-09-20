@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { verifyWebhookSignature } from "@/lib/lts/hmac";
-import { nextPendingDriver, pushEvent, updateDriverStatus, upsertDriver } from "@/lib/lts/store";
-import type { ScreeningStatus, WebhookPayload } from "@/lib/lts/types";
+import { verifyWebhookSignature } from "@/lib/compliance/hmac";
+import { nextPendingDriver, pushEvent, updateDriverStatus, upsertDriver } from "@/lib/compliance/store";
+import type { ScreeningStatus, WebhookPayload } from "@/lib/compliance/types";
 
 function mapStatus(input: WebhookPayload["status"]): ScreeningStatus {
   if (input === "NEGATIVE") return "CLEARED";
@@ -12,13 +12,13 @@ function mapStatus(input: WebhookPayload["status"]): ScreeningStatus {
   return "CLEARED";
 }
 
-export const Route = createFileRoute("/api/lts/webhook")({
+export const Route = createFileRoute("/api/v1/webhooks/lab-results")({
   server: {
     handlers: {
       POST: async ({ request }) => {
         const raw = await request.text();
         const signature =
-          request.headers.get("x-lts-signature") ?? request.headers.get("x-webhook-signature");
+          request.headers.get("x-compliance-signature") ?? request.headers.get("x-webhook-signature");
 
         if (!verifyWebhookSignature(raw, signature)) {
           return Response.json({ error: "Invalid webhook signature" }, { status: 401 });
@@ -47,7 +47,7 @@ export const Route = createFileRoute("/api/lts/webhook")({
         if (!driver && body.orderId) {
           driver = upsertDriver({
             id: body.orderId,
-            name: "Inbound LTS Subject",
+            name: "Inbound Screening Record",
             cdl: "UNKNOWN",
             testType: "DOT_5_PANEL",
             status: nextStatus,
@@ -58,7 +58,7 @@ export const Route = createFileRoute("/api/lts/webhook")({
 
         pushEvent({
           source: "WEBHOOK",
-          path: "/api/lts/webhook",
+          path: "/api/v1/webhooks/lab-results",
           payload: {
             event: body.event ?? "mro.result",
             status: nextStatus,

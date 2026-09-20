@@ -1,18 +1,20 @@
 # St. Joseph Compliance Company
 
-> Compliance services for employers and fleets.
+> Independent DOT compliance software platform for employers and fleets.
 
 - Legal name: St. Joseph Compliance Company (SJCC)
 - Domain: https://stjcc.online
 - Contact: contact@stjcc.online
-- Category: DOT / FMCSA C-TPA orchestration, drug & alcohol testing, background checks
+- Category: DOT / FMCSA C-TPA software, drug and alcohol testing, background checks
 
 ## What we are
-SJCC coordinates:
+SJCC's proprietary compliance engine coordinates:
 - 5-, 9-, and 10-panel urine testing, hair follicle testing, breath alcohol testing, and DOT-regulated panels
 - National and county-level criminal searches, sex offender registry checks, SSN trace, and employment and education verification
 - Real-time motor vehicle records
 - Consortium management, random pool administration, and CDL Clearinghouse queries
+- Automated random pool management and digital clinic pass generation
+- A SAMHSA-certified lab network with 10,000+ nationwide collection sites and a certified MRO network
 
 ## Key URLs
 - Home: https://stjcc.online/

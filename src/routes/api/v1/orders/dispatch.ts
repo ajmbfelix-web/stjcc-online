@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { pushEvent, upsertDriver } from "@/lib/lts/store";
-import type { DriverRecord, OrderRequest, TestType } from "@/lib/lts/types";
+import { pushEvent, upsertDriver } from "@/lib/compliance/store";
+import type { DriverRecord, OrderRequest, TestType } from "@/lib/compliance/types";
 import { getSessionUser } from "@/lib/auth/verify.server";
 
-export const Route = createFileRoute("/api/lts/order-test")({
+export const Route = createFileRoute("/api/v1/orders/dispatch")({
   server: {
     handlers: {
       POST: async ({ request }) => {
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/api/lts/order-test")({
           return Response.json({ error: "Invalid JSON payload" }, { status: 400 });
         }
 
-        const partnerId = process.env.LTS_PARTNER_ID ?? body.partnerId ?? "STJCC-POC";
+        const accountId = process.env.COMPLIANCE_ACCOUNT_ID ?? body.accountId ?? "SJCC-DEMO";
         const testType: TestType = body.testType ?? "DOT_5_PANEL";
         const orderId = `ord_${Date.now().toString(36)}`;
         const barcode = `SJ-${Math.random().toString(16).slice(2, 6).toUpperCase()}-${Math.floor(
@@ -41,22 +41,22 @@ export const Route = createFileRoute("/api/lts/order-test")({
 
         const payload = {
           accepted: true,
-          partnerId,
-          apiKeyPresent: Boolean(process.env.LTS_API_KEY),
+          accountId,
+          integrationConfigured: Boolean(process.env.COMPLIANCE_API_KEY),
           order: {
             orderId,
             barcode,
             status: driver.status,
             testType,
-            collectionNetwork: body.collectionNetwork ?? "QUEST_LABCORP",
-            callbackUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://stjcc.online"}/api/lts/webhook`,
+            collectionNetwork: body.collectionNetwork ?? "SAMHSA_CERTIFIED_NETWORK",
+            callbackUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://stjcc.online"}/api/v1/webhooks/lab-results`,
             driver,
           },
         };
 
         const event = pushEvent({
           source: "ORDER_DISPATCH",
-          path: "/api/lts/order-test",
+          path: "/api/v1/orders/dispatch",
           payload,
         });
 

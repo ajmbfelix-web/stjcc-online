@@ -26,7 +26,7 @@ export type WebhookEvent = {
 };
 
 export type OrderRequest = {
-  partnerId?: string;
+  accountId?: string;
   driver?: {
     name?: string;
     cdl?: string;

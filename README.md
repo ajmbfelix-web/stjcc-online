@@ -2,22 +2,23 @@
 
 Institutional DOT compliance and screening infrastructure — [stjcc.online](https://stjcc.online).
 
-POC for **Lab Testing Solutions** partnership: landing site, mission-control portal, and live LTS order/webhook endpoints.
+Independent DOT compliance software platform: public services site, restricted owner workspace, and generic compliance REST endpoints.
 
 ## Product
 
-- Automated background checks & MVRs
-- DOT 5-Panel / breath alcohol via Quest Diagnostics & LabCorp
-- Consortium (C-TPA) random pools & FMCSA Clearinghouse tracking
-- Digital clinic barcode passes
-- HMAC-signed LTS webhooks
+- Proprietary compliance engine for automated workflows
+- Automated random pool management and FMCSA Clearinghouse tracking
+- Real-time MVR checks and background screening
+- DOT drug and alcohol testing through a SAMHSA-certified lab network
+- Digital clinic pass generation
+- Signed lab-result callbacks through a certified MRO network
 
 ## API
 
-- `POST /api/lts/order-test`
-- `POST /api/lts/webhook`
+- `POST /api/v1/orders/dispatch`
+- `POST /api/v1/webhooks/lab-results`
 
-Copy `.env.example` for partner credentials. Never commit secrets.
+Copy `.env.example` for local configuration. Never commit secrets.
 
 ## Discoverability
 
