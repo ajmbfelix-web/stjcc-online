@@ -16,13 +16,13 @@ export const Route = createRootRoute({
       {
         name: "keywords",
         content:
-          "St. Joseph Compliance Company, SJCC, stjcc.online, DOT compliance, C-TPA, FMCSA Clearinghouse, DOT 5-Panel, drug testing, Lab Testing Solutions, LTS webhook, MVR, background check, consortium, micro-fleet",
+          "St. Joseph Compliance Company, SJCC, stjcc.online, DOT compliance, C-TPA, FMCSA Clearinghouse, DOT drug testing, hair follicle testing, MVR, background check, consortium, random pool, micro-fleet",
       },
       { name: "author", content: SITE_NAME },
       { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1" },
       { name: "googlebot", content: "index, follow" },
       { name: "language", content: "en-US" },
-      { name: "theme-color", content: "#0A0A0A" },
+      { name: "theme-color", content: "#F7F8F6" },
       { name: "application-name", content: SITE_NAME },
       { name: "referrer", content: "strict-origin-when-cross-origin" },
     ],
@@ -47,7 +47,7 @@ export const Route = createRootRoute({
 
 function RootDocument() {
   return (
-    <html lang="en" className="dark antialiased" suppressHydrationWarning>
+    <html lang="en" className="antialiased" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
@@ -57,7 +57,7 @@ function RootDocument() {
         <AuthProvider>
           <Outlet />
           <Toaster
-            theme="dark"
+            theme="light"
             position="bottom-right"
             toastOptions={{
               className:

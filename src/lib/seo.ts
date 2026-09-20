@@ -3,7 +3,7 @@ export const SITE_NAME = "St. Joseph Compliance Company";
 export const SITE_HANDLE = "stjcc.online";
 
 export const DEFAULT_DESCRIPTION =
-  "St. Joseph Compliance Company (SJCC) provides automated DOT compliance and screening infrastructure for micro-fleets: driver background checks, MVRs, DOT 5-Panel drug and alcohol testing, consortium/C-TPA administration, FMCSA Clearinghouse tracking, and Lab Testing Solutions (LTS) webhook orchestration at stjcc.online.";
+  "St. Joseph Compliance Company (SJCC) helps employers manage DOT drug and alcohol testing, background screening, motor vehicle records, consortium management, random pools, and CDL Clearinghouse queries.";
 
 export function canonical(path = "/") {
   const normalized = path.startsWith("/") ? path : `/${path}`;
@@ -34,7 +34,7 @@ export const jsonLdGraph = {
         "C-TPA consortium management",
         "DOT 5-Panel drug testing",
         "Motor vehicle records",
-        "Lab Testing Solutions API",
+        "Employment and education verification",
       ],
     },
     {
@@ -55,7 +55,7 @@ export const jsonLdGraph = {
       url: SITE_URL,
       provider: { "@id": `${SITE_URL}/#organization` },
       description:
-        "API-first DOT compliance orchestration: digital clinic passes, LTS order dispatch, HMAC-signed webhooks, and mission-control screening dashboards.",
+        "DOT compliance services including regulated testing, background screening, motor vehicle records, consortium management, random pools, and CDL Clearinghouse queries.",
       offers: {
         "@type": "Offer",
         url: `${SITE_URL}/contact`,
@@ -76,10 +76,10 @@ export const jsonLdGraph = {
         },
         {
           "@type": "Question",
-          name: "How does SJCC integrate with Lab Testing Solutions (LTS)?",
+          name: "How does SJCC manage compliance workflows?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "SJCC is API-first. Partners dispatch digital orders to POST /api/lts/order-test and receive MRO results on POST /api/lts/webhook with HMAC verification using LTS_WEBHOOK_SECRET.",
+            text: "SJCC coordinates the request, scheduling, testing or screening, review, and reporting steps while keeping sensitive records restricted to authorized staff.",
           },
         },
         {
@@ -87,7 +87,7 @@ export const jsonLdGraph = {
           name: "Which collection networks does SJCC support?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "DOT 5-Panel, non-DOT, urine, and breath alcohol testing through 10,000+ Quest Diagnostics and LabCorp collection sites.",
+            text: "Services include 5-, 9-, and 10-panel urine testing, hair follicle testing, breath alcohol testing, DOT-regulated panels, background screening, and MVRs.",
           },
         },
         {

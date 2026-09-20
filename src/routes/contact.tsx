@@ -10,11 +10,11 @@ import { canonical, pageTitle } from "@/lib/seo";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: pageTitle("Request API Integration Access") },
+      { title: pageTitle("Request a Consultation") },
       {
         name: "description",
         content:
-          "Request Lab Testing Solutions (LTS) API integration access with St. Joseph Compliance Company at stjcc.online. Partner ID, webhook secret, and callback URL onboarding.",
+          "Contact St. Joseph Compliance Company about drug testing, background screening, MVRs, consortium management, and DOT compliance services.",
       },
       { name: "robots", content: "index, follow" },
     ],
@@ -29,7 +29,7 @@ function Contact() {
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSent(true);
-    toast.success("Integration request recorded for LTS partner review.");
+    toast.success("Your consultation request has been recorded.");
   }
 
   return (
@@ -37,17 +37,17 @@ function Contact() {
       <SiteHeader />
       <main className="mx-auto max-w-xl px-4 py-16 sm:px-6">
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">
-          Partner access
+          Employer services
         </p>
-        <h1 className="mt-3 text-3xl font-medium">Request API integration access</h1>
+        <h1 className="mt-3 text-3xl font-medium">Request a compliance consultation</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          For Lab Testing Solutions sandbox pairing. We will follow up with
-          partner ID, webhook secret rotation, and callback URL confirmation.
+          Tell us what your organization needs help with. We will follow up to
+          discuss testing, screening, MVR, consortium, or Clearinghouse services.
         </p>
         <form onSubmit={onSubmit} className="mt-10 space-y-4">
           <Field label="Organization" name="org" required />
           <Field label="Contact email" name="email" type="email" required />
-          <Field label="LTS contact / ticket (optional)" name="lts" />
+          <Field label="Services you need (optional)" name="services" />
           <label className="block">
             <span className="mb-1.5 block font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
               Notes

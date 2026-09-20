@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 const links = [
   { to: "/", hash: "capabilities", label: "Capabilities" },
   { to: "/", hash: "architecture", label: "Architecture" },
-  { to: "/dashboard", label: "Portal" },
+  { to: "/dashboard", label: "Owner sign-in" },
 ] as const;
 
 export function SiteHeader() {
@@ -42,7 +42,7 @@ export function SiteHeader() {
           )}
         </nav>
         <Button asChild size="sm" variant="outline" className="shrink-0">
-          <Link to="/dashboard">Portal</Link>
+          <Link to="/dashboard">Owner sign-in</Link>
         </Button>
       </div>
     </header>

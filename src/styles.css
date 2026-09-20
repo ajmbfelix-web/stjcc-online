@@ -1,24 +1,24 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #0a0a0a;
-  --color-foreground: #f4f4f5;
-  --color-card: #171717;
-  --color-card-foreground: #f4f4f5;
-  --color-muted: #1f1f1f;
-  --color-muted-foreground: #a1a1aa;
-  --color-subtle: #71717a;
-  --color-border: #2a2a2a;
-  --color-ring: #7ee0f2;
-  --color-primary: #f4f4f5;
-  --color-primary-foreground: #0a0a0a;
-  --color-secondary: #1c1c1c;
-  --color-secondary-foreground: #f4f4f5;
-  --color-accent: #7ee0f2;
-  --color-accent-foreground: #041014;
-  --color-destructive: #f87171;
-  --color-ok: #34d399;
-  --color-warn: #fbbf24;
+  --color-background: #f7f8f6;
+  --color-foreground: #17211f;
+  --color-card: #ffffff;
+  --color-card-foreground: #17211f;
+  --color-muted: #edf1ef;
+  --color-muted-foreground: #53615d;
+  --color-subtle: #71807a;
+  --color-border: #d7e0dc;
+  --color-ring: #197c72;
+  --color-primary: #176f67;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #e4ece9;
+  --color-secondary-foreground: #173c37;
+  --color-accent: #197c72;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #b42318;
+  --color-ok: #147d55;
+  --color-warn: #a15c00;
   --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --radius-sm: 0.375rem;
@@ -34,7 +34,7 @@
   }
 
   html {
-    color-scheme: dark;
+    color-scheme: light;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

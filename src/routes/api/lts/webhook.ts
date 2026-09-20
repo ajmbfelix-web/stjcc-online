@@ -56,7 +56,7 @@ export const Route = createFileRoute("/api/lts/webhook")({
           });
         }
 
-        const event = pushEvent({
+        pushEvent({
           source: "WEBHOOK",
           path: "/api/lts/webhook",
           payload: {
@@ -67,12 +67,7 @@ export const Route = createFileRoute("/api/lts/webhook")({
           },
         });
 
-        return Response.json({
-          received: true,
-          status: nextStatus,
-          driver,
-          event,
-        });
+        return Response.json({ received: true, status: nextStatus });
       },
     },
   },

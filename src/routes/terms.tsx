@@ -10,7 +10,7 @@ export const Route = createFileRoute("/terms")({
       {
         name: "description",
         content:
-          "Terms of service for the St. Joseph Compliance Company proof-of-concept at stjcc.online, including LTS sandbox evaluation limits.",
+          "Terms of service for St. Joseph Compliance Company compliance services at stjcc.online.",
       },
       { name: "robots", content: "index, follow" },
     ],
@@ -30,15 +30,14 @@ function Terms() {
         <h1 className="mt-3 text-3xl font-medium">Terms of Service</h1>
         <div className="mt-8 space-y-5 text-sm leading-relaxed text-muted-foreground">
           <p>
-            This website is a proof-of-concept demonstration of St. Joseph
-            Compliance Company’s screening orchestration platform. Simulated
-            orders and webhook events are for partner evaluation with Lab Testing
-            Solutions and do not constitute production chain-of-custody.
+            This website describes St. Joseph Compliance Company’s compliance
+            services. Any owner workspace or operational demonstration is
+            restricted to authorized SJCC staff and does not provide clients with
+            access to confidential screening records.
           </p>
           <p>
-            You may not reverse engineer, overload, or misuse the API endpoints.
-            Production use requires a written partner agreement, valid API
-            credentials, and applicable DOT/FMCSA program enrollment.
+            Services are subject to a written agreement, applicable DOT and FMCSA
+            requirements, and the authorization terms provided to each employer.
           </p>
           <p>
             THE POC IS PROVIDED “AS IS.” SJCC DISCLAIMS WARRANTIES TO THE MAXIMUM

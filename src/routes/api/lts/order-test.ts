@@ -1,11 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { pushEvent, upsertDriver } from "@/lib/lts/store";
 import type { DriverRecord, OrderRequest, TestType } from "@/lib/lts/types";
+import { getSessionUser } from "@/lib/auth/verify.server";
 
 export const Route = createFileRoute("/api/lts/order-test")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const bearerToken = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+        const user = await getSessionUser(bearerToken);
+        if (!user) {
+          return Response.json({ error: "Owner authentication required" }, { status: 401 });
+        }
+
         let body: OrderRequest = {};
         try {
           body = (await request.json()) as OrderRequest;

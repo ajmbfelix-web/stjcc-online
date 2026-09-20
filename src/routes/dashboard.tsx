@@ -12,17 +12,19 @@ import {
 import { Wordmark } from "@/components/logo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { SignInButtons, SignInGate } from "@/lib/auth/gates";
+import { getBearerToken } from "@/lib/auth/client";
 import type { DriverRecord, ScreeningStatus, WebhookEvent } from "@/lib/lts/types";
 import { canonical, pageTitle } from "@/lib/seo";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: pageTitle("Client Portal") },
+      { title: pageTitle("Owner Compliance Workspace") },
       {
         name: "description",
         content:
-          "SJCC mission-control portal for LTS order dispatch, webhook simulation, driver screening status, and barcode clinic passes.",
+          "Restricted SJCC workspace for authorized compliance operations, screening status, and audit reporting.",
       },
       { name: "robots", content: "noindex, nofollow" },
     ],
@@ -34,47 +36,47 @@ export const Route = createFileRoute("/dashboard")({
 const seed: DriverRecord[] = [
   {
     id: "drv_01",
-    name: "Marcus Hale",
-    cdl: "TX-4829103",
+    name: "Record A",
+    cdl: "REDACTED",
     testType: "DOT_5_PANEL",
     status: "COLLECTION_PENDING",
-    barcode: "SJ-9F2A-4410",
+    barcode: "INTERNAL",
     updatedAt: "2026-09-19T18:12:00.000Z",
   },
   {
     id: "drv_02",
-    name: "Elena Voss",
-    cdl: "OH-7712044",
+    name: "Record B",
+    cdl: "REDACTED",
     testType: "DOT_5_PANEL",
     status: "CLEARED",
-    barcode: "SJ-7C18-2201",
+    barcode: "INTERNAL",
     updatedAt: "2026-09-18T14:41:00.000Z",
   },
   {
     id: "drv_03",
-    name: "James Okonkwo",
-    cdl: "CA-1903382",
+    name: "Record C",
+    cdl: "REDACTED",
     testType: "BACKGROUND_CHECK",
     status: "EXCEPTION",
-    barcode: "SJ-3B90-1188",
+    barcode: "INTERNAL",
     updatedAt: "2026-09-17T09:05:00.000Z",
   },
   {
     id: "drv_04",
-    name: "Priya Shah",
-    cdl: "FL-5501298",
+    name: "Record D",
+    cdl: "REDACTED",
     testType: "DOT_5_PANEL",
     status: "COLLECTION_PENDING",
-    barcode: "SJ-1E44-7732",
+    barcode: "INTERNAL",
     updatedAt: "2026-09-19T16:28:00.000Z",
   },
   {
     id: "drv_05",
-    name: "Robert Chen",
-    cdl: "NY-8820145",
+    name: "Record E",
+    cdl: "REDACTED",
     testType: "BACKGROUND_CHECK",
     status: "CLEARED",
-    barcode: "SJ-8D02-5566",
+    barcode: "INTERNAL",
     updatedAt: "2026-09-16T21:10:00.000Z",
   },
 ];
@@ -127,9 +129,13 @@ function Dashboard() {
         collectionNetwork: "QUEST_LABCORP",
         callbackUrl: "https://stjcc.online/api/lts/webhook",
       };
+      const token = getBearerToken();
       const res = await fetch("/api/lts/order-test", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          ...(token ? { authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify(body),
       });
       const json = (await res.json()) as {
@@ -165,9 +171,13 @@ function Dashboard() {
         result: "Negative / Cleared",
         mroReviewedAt: new Date().toISOString(),
       };
+      const token = getBearerToken();
       const res = await fetch("/api/lts/webhook", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          ...(token ? { authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify(body),
       });
       const json = (await res.json()) as {
@@ -197,7 +207,8 @@ function Dashboard() {
   }
 
   return (
-    <div className="min-h-dvh bg-background">
+    <SignInGate fallback={<OwnerSignIn />}>
+      <div className="min-h-dvh bg-background">
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div className="flex items-center gap-4">
@@ -309,6 +320,28 @@ function Dashboard() {
           </div>
         </section>
       </main>
+      </div>
+    </SignInGate>
+  );
+}
+
+function OwnerSignIn() {
+  return (
+    <div className="grid min-h-dvh place-items-center bg-background px-4">
+      <section className="w-full max-w-md rounded-xl border border-border bg-card p-7 text-center shadow-sm">
+        <Badge tone="idle">Restricted workspace</Badge>
+        <h1 className="mt-4 text-2xl font-medium">SJCC owner sign-in</h1>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          This workspace contains confidential screening records, results, and audit reports.
+          It is for authorized SJCC staff only.
+        </p>
+        <div className="mt-6 flex justify-center">
+          <SignInButtons callbackURL="/dashboard" />
+        </div>
+        <Link to="/" className="mt-5 inline-block text-sm text-accent hover:underline">
+          Return to public services
+        </Link>
+      </section>
     </div>
   );
 }

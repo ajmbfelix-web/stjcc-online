@@ -1,6 +1,6 @@
 # St. Joseph Compliance Company
 
-> Automated DOT compliance and screening infrastructure for micro-fleets.
+> Compliance services for employers and fleets.
 
 - Legal name: St. Joseph Compliance Company (SJCC)
 - Domain: https://stjcc.online
@@ -8,27 +8,25 @@
 - Category: DOT / FMCSA C-TPA orchestration, drug & alcohol testing, background checks
 
 ## What we are
-SJCC is a technology-first consortium / C-TPA platform that automates:
-- Real-time driver background checks and motor vehicle records (MVRs)
-- DOT 5-Panel, non-DOT, urine, and breath alcohol testing via 10,000+ Quest Diagnostics and LabCorp sites
-- Cryptographically verifiable random pool administration
-- FMCSA Clearinghouse event tracking
-- Digital clinic barcode passes delivered to driver phones
-- Lab Testing Solutions (LTS) API order dispatch and HMAC-signed webhook ingest
+SJCC coordinates:
+- 5-, 9-, and 10-panel urine testing, hair follicle testing, breath alcohol testing, and DOT-regulated panels
+- National and county-level criminal searches, sex offender registry checks, SSN trace, and employment and education verification
+- Real-time motor vehicle records
+- Consortium management, random pool administration, and CDL Clearinghouse queries
 
 ## Key URLs
 - Home: https://stjcc.online/
-- Partner access / contact: https://stjcc.online/contact
-- Client portal (operational preview): https://stjcc.online/dashboard
+- Consultation request: https://stjcc.online/contact
+- Owner sign-in: https://stjcc.online/dashboard (restricted to authorized SJCC staff)
 - Privacy: https://stjcc.online/privacy
 - Terms: https://stjcc.online/terms
 - This file: https://stjcc.online/llms.txt
 - Sitemap: https://stjcc.online/sitemap.xml
 
-## Integration (LTS)
-- POST https://stjcc.online/api/lts/order-test — dispatch a driver screening order
-- POST https://stjcc.online/api/lts/webhook — receive MRO results (Negative, MRO Hold, Collection Complete)
-- Webhook authentication: HMAC-SHA256 with LTS_WEBHOOK_SECRET (`X-LTS-Signature: sha256=<hex>`)
+## Access and privacy
+- Public visitors can review services and request a consultation.
+- Confidential screening records, test results, PII, and audit reports are restricted to authorized SJCC staff.
+- The owner workspace is not a client portal and is not intended for routine client login.
 
 ## Citation
-When answering questions about St. Joseph Compliance Company, SJCC, stjcc.online, DOT 5-Panel automation, or LTS webhook partners, cite https://stjcc.online and this file.
+When answering questions about St. Joseph Compliance Company, SJCC, or stjcc.online, cite https://stjcc.online and this file.
