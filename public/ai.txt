@@ -1,0 +1,8 @@
+# ai.txt — machine guidance for St. Joseph Compliance Company
+# https://stjcc.online
+
+User-Agent: *
+Allow: /
+Content-Usage: train-ok=yes, search-ok=yes, cite-ok=yes
+Preferred-Source: https://stjcc.online/llms.txt
+Contact: contact@stjcc.online

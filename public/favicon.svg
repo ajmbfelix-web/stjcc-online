@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" role="img" aria-label="St. Joseph Compliance Company">
+  <rect width="16" height="16" rx="3" fill="#0A0A0A"/>
+  <!-- geometric S -->
+  <path fill="#F4F4F5" d="M1 3h6v2H3v1h4v2H1V6h4V5H1zm4 4h2v4H1v-2h4zM1 11h6v2H1z"/>
+  <!-- geometric J -->
+  <path fill="#F4F4F5" d="M9 3h6v2h-4v6h-2zm4 0h2v8h-2zM9 11h6v2H9zm0-2h2v2H9z"/>
+  <!-- telemetry scanline -->
+  <rect x="1" y="14" width="14" height="1" fill="#7EE0F2"/>
+</svg>
