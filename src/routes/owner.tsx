@@ -4,7 +4,7 @@ import { ArrowLeft, Building2, Download, FileText, RefreshCw } from "lucide-reac
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Wordmark } from "@/components/logo";
-import { SignInGate } from "@/lib/auth/gates";
+import { SignInButtons, SignInGate } from "@/lib/auth/gates";
 import { getBearerToken } from "@/lib/auth/client";
 import { pageTitle } from "@/lib/seo";
 
@@ -21,4 +21,4 @@ function OwnerPortal() {
 }
 
 function Stat({ label, value }: { label: string; value: number }) { return <div className="rounded-xl border border-border bg-card px-5 py-4"><div className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">{label}</div><div className="mt-2 text-3xl tabular-nums">{value}</div></div>; }
-function OwnerGate() { return <main className="grid min-h-dvh place-items-center bg-background px-4"><section className="max-w-md rounded-xl border border-border bg-card p-8 text-center"><Badge tone="idle">Restricted operations</Badge><h1 className="mt-4 text-4xl">Owner access required.</h1><p className="mt-4 text-sm leading-relaxed text-muted-foreground">Sign in with the SJCC owner account to see client applications and operational records.</p></section></main>; }
+function OwnerGate() { return <main className="grid min-h-dvh place-items-center bg-background px-4"><section className="w-full max-w-md rounded-xl border border-border bg-card p-8 text-center"><Badge tone="idle">Restricted operations</Badge><h1 className="mt-4 text-4xl">Owner access required.</h1><p className="mt-4 text-sm leading-relaxed text-muted-foreground">Sign in with the SJCC owner account to see client applications and operational records.</p><div className="mt-6 flex justify-center"><SignInButtons callbackURL="/owner" /></div><Link to="/" className="mt-5 inline-block text-sm text-accent hover:underline">Return to site</Link></section></main>; }

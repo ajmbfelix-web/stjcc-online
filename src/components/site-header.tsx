@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 const links = [
   { to: "/", hash: "capabilities", label: "Capabilities" },
   { to: "/", hash: "architecture", label: "Architecture" },
-  { to: "/dashboard", label: "Owner sign-in" },
 ] as const;
 
 export function SiteHeader() {
@@ -21,28 +20,18 @@ export function SiteHeader() {
           </span>
         </Link>
         <nav className="hidden items-center gap-6 md:flex">
-          {links.map((link) =>
-            "hash" in link ? (
-              <a
-                key={link.label}
-                href={`${link.to}#${link.hash}`}
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {link.label}
-              </a>
-            ) : (
-              <Link
-                key={link.label}
-                to={link.to}
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                {link.label}
-              </Link>
-            ),
-          )}
+          {links.map((link) => (
+            <a
+              key={link.label}
+              href={`${link.to}#${link.hash}`}
+              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {link.label}
+            </a>
+          ))}
         </nav>
         <Button asChild size="sm" variant="outline" className="shrink-0">
-          <Link to="/dashboard">Owner sign-in</Link>
+          <Link to="/login">Client sign-in</Link>
         </Button>
       </div>
     </header>

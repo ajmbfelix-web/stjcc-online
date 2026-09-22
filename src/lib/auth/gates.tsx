@@ -1,6 +1,6 @@
 import { useState, useSyncExternalStore, type ReactNode } from "react";
 import { Navigate } from "@tanstack/react-router";
-import { authEnabled, signInEmail, signOut } from "./client";
+import { authEnabled, signInEmail, signOut, signUpEmail } from "./client";
 import { hasGateSessionMarker } from "./gate-session-marker";
 import { resolveSignInGateState } from "./sign-in-gate";
 import { useCurrentUser, useCurrentUserState } from "./use-current-user";
@@ -68,13 +68,16 @@ export function SignInButtons({ callbackURL = "/" }: { callbackURL?: string }) {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<"sign-in" | "create">("sign-in");
+  const [name, setName] = useState("");
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
     setError(null);
     try {
-      await signInEmail(email, password);
+      if (mode === "create") await signUpEmail(name, email, password);
+      else await signInEmail(email, password);
       window.location.href = callbackURL;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign-in failed");
@@ -84,6 +87,11 @@ export function SignInButtons({ callbackURL = "/" }: { callbackURL?: string }) {
 
   return (
     <form onSubmit={submit} className="flex w-full max-w-sm flex-col gap-3 text-left">
+      <div className="flex gap-1 rounded-md border border-border bg-background p-1 text-xs">
+        <button type="button" onClick={() => setMode("sign-in")} className={`flex-1 rounded px-3 py-2 ${mode === "sign-in" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>Sign in</button>
+        <button type="button" onClick={() => setMode("create")} className={`flex-1 rounded px-3 py-2 ${mode === "create" ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>Create account</button>
+      </div>
+      {mode === "create" && <label className="text-sm font-medium">Name<input required value={name} onChange={(event) => setName(event.target.value)} className="mt-1 h-11 w-full rounded-md border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring/50" /></label>}
       <label className="text-sm font-medium">
         Email
         <input
@@ -113,7 +121,7 @@ export function SignInButtons({ callbackURL = "/" }: { callbackURL?: string }) {
         disabled={busy}
         className="h-11 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50"
       >
-        {busy ? "Signing in..." : "Sign in"}
+        {busy ? "Working..." : mode === "create" ? "Create account" : "Sign in"}
       </button>
     </form>
   );

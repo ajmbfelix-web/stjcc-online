@@ -198,6 +198,23 @@ function Home() {
           </div>
         </section>
       </main>
+      <section className="border-t border-border bg-card/60">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent">SJCC operations</p>
+            <h2 className="mt-2 text-2xl">Business owner access</h2>
+            <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+              Review client onboarding, agreements, billing readiness, and audit exports.
+            </p>
+          </div>
+          <Button asChild variant="outline">
+            <Link to="/owner">
+              Owner sign-in
+              <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+        </div>
+      </section>
       <SiteFooter />
     </div>
   );
