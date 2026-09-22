@@ -21,6 +21,8 @@ import {
   yearKey,
   billingDecision,
 } from "./policy.ts";
+import { labConfigured } from "../vendors/adapter.ts";
+import { ownerInbox } from "./owner.ts";
 import { hashClaimToken } from "./tokens.ts";
 
 type Sql = {
@@ -63,6 +65,7 @@ type RosterRow = {
   clearinghouseQueriedOn: string | Date | null;
   hiredOn: string | Date | null;
   inRandomPool: boolean;
+  needsTesting: boolean;
   employmentStatus: string;
 };
 
@@ -70,6 +73,7 @@ type PendingOrder = {
   id: string;
   accountId: string;
   name: string;
+  cdl: string;
   rosterId: string | null;
   orderReason: string;
   createdAt: string | Date;
@@ -95,6 +99,15 @@ function servicesOf(value: unknown): unknown {
 }
 
 async function upsertFinding(sql: Sql, accountId: string, finding: Finding): Promise<void> {
+  const notice =
+    finding.audience === "owner" && !finding.notify
+      ? {
+          recipient: ownerInbox(),
+          template: `owner_${finding.source}`,
+          subject: finding.title,
+          body: `${finding.description}\n\nThis is an exception. It needs a person because the automatic step could not finish it.`,
+        }
+      : finding.notify;
   await sql.query(
     `insert into compliance_exceptions
       (id, account_id, title, description, severity, source, audience, dedupe_key, roster_id)
@@ -122,7 +135,7 @@ async function upsertFinding(sql: Sql, accountId: string, finding: Finding): Pro
       finding.rosterId ?? null,
     ],
   );
-  if (!finding.notify?.recipient) return;
+  if (!notice?.recipient) return;
   await sql.query(
     `insert into notification_outbox
       (id, account_id, recipient, template, subject, body, dedupe_key)
@@ -131,10 +144,10 @@ async function upsertFinding(sql: Sql, accountId: string, finding: Finding): Pro
     [
       `ntf_${randomUUID()}`,
       accountId,
-      finding.notify.recipient,
-      finding.notify.template,
-      finding.notify.subject,
-      finding.notify.body,
+      notice.recipient,
+      notice.template,
+      notice.subject,
+      notice.body,
       `notify:${finding.dedupeKey}`,
     ],
   );
@@ -193,7 +206,7 @@ async function insertOrder(
      values ($1, $2, 'SYSTEM', 'automation', $3::jsonb)`,
     [randomUUID(), input.accountId, JSON.stringify({ orderId: id, reason: input.orderReason, rosterId: input.rosterId })],
   );
-  return { id, accountId: input.accountId, name: input.name, rosterId: input.rosterId, orderReason: input.orderReason, createdAt };
+  return { id, accountId: input.accountId, name: input.name, cdl: input.cdl, rosterId: input.rosterId, orderReason: input.orderReason, createdAt };
 }
 
 async function deliverPending(sql: Sql, summary: RunSummary): Promise<void> {
@@ -281,6 +294,7 @@ export async function runAutomationWith(sql: Sql, options: RunOptions): Promise<
             clearinghouse_queried_on as "clearinghouseQueriedOn",
             hired_on as "hiredOn",
             in_random_pool as "inRandomPool",
+            needs_testing as "needsTesting",
             employment_status as "employmentStatus"
      from driver_roster
      where employment_status = 'active'`,
@@ -293,7 +307,7 @@ export async function runAutomationWith(sql: Sql, options: RunOptions): Promise<
     ).map((row) => row.roster_id),
   );
   const pending = await sql.query<PendingOrder>(
-    `select id, account_id as "accountId", name, roster_id as "rosterId", order_reason as "orderReason", created_at as "createdAt"
+    `select id, account_id as "accountId", name, cdl, roster_id as "rosterId", order_reason as "orderReason", created_at as "createdAt"
      from compliance_drivers where status = 'COLLECTION_PENDING'`,
   );
   const selected = await sql.query<{ rosterId: string; testKind: string }>(
@@ -339,7 +353,7 @@ export async function runAutomationWith(sql: Sql, options: RunOptions): Promise<
 
   for (const driver of roster) {
     const org = orgById.get(driver.accountId);
-    if (!org || (org.status !== "active" && org.status !== "past_due")) continue;
+    if (!org || (org.status !== "active" && org.status !== "past_due") || driver.needsTesting === false) continue;
     const profile = trackingProfile(servicesOf(org.services));
     const qualification = qualificationFindings({
       rosterId: driver.id,
@@ -380,7 +394,7 @@ export async function runAutomationWith(sql: Sql, options: RunOptions): Promise<
 
   const randomPool = roster.filter((driver) => {
     const org = orgById.get(driver.accountId);
-    if (!org || (org.status !== "active" && org.status !== "past_due") || driver.inRandomPool === false) return false;
+    if (!org || (org.status !== "active" && org.status !== "past_due") || driver.inRandomPool === false || driver.needsTesting === false) return false;
     return trackingProfile(servicesOf(org.services)).random;
   });
   const quarter = Number(periodKey(now).slice(-1));
@@ -428,6 +442,7 @@ export async function runAutomationWith(sql: Sql, options: RunOptions): Promise<
       id: orderId,
       accountId: draw.driver.accountId,
       name: draw.driver.name,
+      cdl: draw.driver.cdl,
       rosterId: draw.driver.id,
       orderReason: draw.kind,
       createdAt: now.toISOString(),
@@ -451,6 +466,9 @@ export async function runAutomationWith(sql: Sql, options: RunOptions): Promise<
         orderId: order.id,
         rosterId: order.rosterId,
         driverName: order.name,
+        cdl: order.cdl,
+        organizationName: org?.organizationName,
+        laboratoryConnected: labConfigured(),
         openedOn: dateOnly(order.createdAt) ?? today,
         today,
         recipient: org?.contactEmail,
@@ -535,7 +553,9 @@ export async function applyBillingEvent(
   if (decision === "activate") {
     await sql.query(
       `update client_onboarding
-       set status = 'active', billing_status = 'current', activated_at = coalesce(activated_at, now()), updated_at = now()
+       set status = 'active', billing_status = 'current', activated_at = coalesce(activated_at, now()),
+           billed_driver_count = case when billed_driver_count = 0 then driver_count else billed_driver_count end,
+           updated_at = now()
        where id = $1`,
       [input.onboardingId],
     );
@@ -643,13 +663,15 @@ export async function saveRosterDriver(
     clearinghouseQueriedOn?: string | null;
     hiredOn?: string | null;
     inRandomPool?: boolean;
+    needsTesting?: boolean;
   },
 ): Promise<{ id: string }> {
   const cdl = input.cdl.trim().toUpperCase();
+  const needsTesting = input.needsTesting !== false;
   const rows = await sql.query<{ id: string }>(
     `insert into driver_roster
-      (id, account_id, name, cdl, medical_card_expires_on, mvr_reviewed_on, clearinghouse_queried_on, hired_on, in_random_pool, updated_at)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, now())
+      (id, account_id, name, cdl, medical_card_expires_on, mvr_reviewed_on, clearinghouse_queried_on, hired_on, in_random_pool, needs_testing, updated_at)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, now())
      on conflict (account_id, cdl) do update set
        name = excluded.name,
        medical_card_expires_on = excluded.medical_card_expires_on,
@@ -657,6 +679,8 @@ export async function saveRosterDriver(
        clearinghouse_queried_on = excluded.clearinghouse_queried_on,
        hired_on = excluded.hired_on,
        in_random_pool = excluded.in_random_pool,
+       needs_testing = excluded.needs_testing,
+       employment_status = 'active',
        updated_at = now()
      returning id`,
     [
@@ -668,7 +692,8 @@ export async function saveRosterDriver(
       input.mvrReviewedOn || null,
       input.clearinghouseQueriedOn || null,
       input.hiredOn || null,
-      input.inRandomPool !== false,
+      needsTesting && input.inRandomPool !== false,
+      needsTesting,
     ],
   );
   const id = rows[0]?.id;

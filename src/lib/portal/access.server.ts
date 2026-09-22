@@ -1,5 +1,6 @@
 import { getSql } from "../db";
 import { classifyAccess, type AccessKind } from "../automation/policy";
+import { ownerInbox } from "../automation/owner";
 import { getSessionUser, type VerifiedUser } from "../auth/verify.server";
 
 export type PortalAccess = {
@@ -12,8 +13,7 @@ export type PortalAccess = {
 };
 
 export async function isOwnerUser(user: VerifiedUser): Promise<boolean> {
-  const configuredOwner = process.env.SJCC_OWNER_EMAIL?.trim().toLowerCase();
-  if (configuredOwner && user.email?.toLowerCase() === configuredOwner) return true;
+  if (user.email?.toLowerCase() === ownerInbox()) return true;
   const sql = await getSql();
   const rows = await sql.query<{ user_id: string }>(
     `select user_id from sjcc_admin_users where user_id = $1 or lower(email) = lower($2) limit 1`,

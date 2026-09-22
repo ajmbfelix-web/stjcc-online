@@ -25,7 +25,7 @@ type RosterDriver = {
 };
 type ClientData = {
   access: { kind: "active_client" | "pending_client" | "unassigned" | "owner"; status?: string; billingStatus?: string };
-  onboarding?: { organizationName: string; dotNumber: string; status: string; billingStatus?: string } | null;
+  onboarding?: { organizationName: string; dotNumber: string; status: string; billingStatus?: string; billedDrivers?: number } | null;
   checklist?: ChecklistItem[];
   roster?: RosterDriver[];
   selections?: Array<{ id: string; testKind: string; name: string; orderStatus: string | null }>;
@@ -71,15 +71,22 @@ function ClientPortal() {
         medicalCardExpiresOn: form.get("medicalCardExpiresOn") || null,
         mvrReviewedOn: form.get("mvrReviewedOn") || null,
         clearinghouseQueriedOn: form.get("clearinghouseQueriedOn") || null,
+        needsTesting: form.get("needsTesting") === "on",
       }),
     });
-    const json = (await response.json()) as { error?: string };
+    const json = (await response.json()) as { error?: string; seat?: { chargedCents: number; billedDrivers: number } };
     if (!response.ok) {
       setNotice(json.error ?? "Could not save the driver");
       return;
     }
     event.currentTarget.reset();
-    setNotice("Driver saved. Qualification tracking and any required test were scheduled automatically.");
+    const charged = json.seat?.chargedCents ?? 0;
+    const seats = json.seat?.billedDrivers ?? data?.onboarding?.billedDrivers ?? 0;
+    setNotice(
+      charged > 0
+        ? `Driver saved. $${(charged / 100).toFixed(2)} was charged today. Monthly testing is now ${seats} × $5.`
+        : `Driver saved. Monthly testing stays at ${seats} × $5. No additional charge was due today.`,
+    );
     await load();
   }
 
@@ -108,7 +115,10 @@ function ClientPortal() {
                 <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">{data.onboarding?.organizationName ?? "Your organization"}</p>
                 <h1 className="mt-3 text-5xl">Compliance is running.</h1>
                 <p className="mt-4 max-w-2xl text-muted-foreground">
-                  Random selections, expiration tracking, and laboratory results update themselves. You only need to keep the roster current.
+                  Testing seats are $5 per driver per month, collected before the month starts. Adding a driver beyond the seats already paid charges $5 that day.
+                  {typeof data.onboarding?.billedDrivers === "number"
+                    ? ` This organization is paying for ${data.onboarding.billedDrivers} seat${data.onboarding.billedDrivers === 1 ? "" : "s"} ($${data.onboarding.billedDrivers * 5}/month).`
+                    : ""}
                 </p>
               </div>
               {data.access.billingStatus === "past_due" ? (
@@ -191,12 +201,19 @@ function ClientPortal() {
               </section>
               <form onSubmit={saveDriver} className="grid gap-4 rounded-xl border border-border bg-card p-6 sm:grid-cols-2">
                 <h2 className="text-2xl sm:col-span-2">Add or update a driver</h2>
+                <p className="text-sm text-muted-foreground sm:col-span-2">
+                  Leave “Needs testing” checked to keep the $5 monthly seat. Unchecking it removes the driver from random testing. The current month is not refunded.
+                </p>
                 <Field name="name" label="Driver name" required />
                 <Field name="cdl" label="CDL number" required />
                 <Field name="hiredOn" label="Hire date" type="date" />
                 <Field name="medicalCardExpiresOn" label="Medical card expires" type="date" />
                 <Field name="mvrReviewedOn" label="MVR reviewed" type="date" />
                 <Field name="clearinghouseQueriedOn" label="Clearinghouse queried" type="date" />
+                <label className="flex items-center gap-3 text-sm sm:col-span-2">
+                  <input name="needsTesting" type="checkbox" defaultChecked className="size-4 accent-[var(--color-primary)]" />
+                  Needs testing — $5 per month
+                </label>
                 {notice ? <p className="text-sm text-muted-foreground sm:col-span-2">{notice}</p> : null}
                 <Button type="submit" className="sm:col-span-2 sm:w-fit">Save driver</Button>
               </form>

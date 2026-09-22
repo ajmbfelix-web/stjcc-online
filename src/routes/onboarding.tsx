@@ -153,7 +153,10 @@ function Onboarding() {
             <Field name="dotNumber" label="DOT number" required />
             <Field name="contactName" label="Primary contact" required />
             <Field name="contactEmail" label="Contact email" type="email" required />
-            <Field name="driverCount" label="Active drivers" type="number" min="0" required />
+            <Field name="driverCount" label="Drivers who need testing" type="number" min="1" required />
+            <p className="text-sm text-muted-foreground sm:col-span-2">
+              $5 per driver per month. Stripe collects the first month before the portal opens. A driver added later, beyond these seats, is charged $5 that day.
+            </p>
           </section>
           <section className="rounded-xl border border-border bg-card p-6">
             <h2 className="text-2xl">Services</h2>
@@ -174,7 +177,7 @@ function Onboarding() {
             <div className="mt-5 space-y-4">
               {[
                 ["termsAccepted", "I agree to the SJCC terms of service."],
-                ["billingAuthorized", "I authorize recurring payment setup through Stripe."],
+                ["billingAuthorized", "I authorize $5 per testing driver per month, collected up front through Stripe."],
                 ["dataProcessingAccepted", "I authorize SJCC to process compliance information for these services."],
               ].map(([name, label]) => (
                 <label key={name} className="flex items-start gap-3 text-sm">

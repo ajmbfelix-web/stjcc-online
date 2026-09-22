@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { operationalLetter } from "./letters.ts";
 
 let resendClient: Resend | null = null;
 
@@ -17,7 +18,7 @@ export async function sendOperationalEmail(to: string, subject: string, text: st
   const resend = getResend();
   const from = process.env.RESEND_FROM_EMAIL?.trim();
   if (!from) throw new Error("RESEND_FROM_EMAIL is not configured");
-  const result = await resend.emails.send({ from, to, subject, text });
+  const result = await resend.emails.send({ from, to, subject, text: operationalLetter(text) });
   if (result.error) throw new Error(result.error.message);
 }
 
@@ -25,6 +26,6 @@ export async function sendOnboardingReceipt(to: string, onboardingId: string): P
   await sendOperationalEmail(
     to,
     "SJCC onboarding received",
-    `Your SJCC onboarding request was received. Reference: ${onboardingId}. Use the claim code from the setup screen after you sign in. The workspace activates automatically once billing is confirmed.`,
+    `Your organization is recorded. Testing seats are $5 per driver per month. Stripe collects the first month before the portal opens. Adding a driver beyond the seats you already paid charges $5 that day.\n\nReference: ${onboardingId}\nSign in and use the claim code from the setup screen if this account is not linked yet.`,
   );
 }

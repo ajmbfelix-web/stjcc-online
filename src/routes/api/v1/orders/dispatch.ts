@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { pushEvent, upsertDriver } from "@/lib/compliance/store";
 import type { DriverRecord, OrderRequest, TestType } from "@/lib/compliance/types";
 import { requirePortalAccess } from "@/lib/portal/access.server";
-import { getLabVendorProvider } from "@/lib/vendors/adapter";
+import { getLabVendorProvider, labConfigured } from "@/lib/vendors/adapter";
 
 export const Route = createFileRoute("/api/v1/orders/dispatch")({
   server: {
@@ -29,12 +29,23 @@ export const Route = createFileRoute("/api/v1/orders/dispatch")({
         if (!accountId) return Response.json({ error: "accountId is required" }, { status: 400 });
         const testType: TestType = body.testType ?? "5_PANEL";
         const orderId = `ord_${Date.now().toString(36)}`;
-        const provider = getLabVendorProvider();
-        const vendorOrder = await provider.createOrder({
-          driverId: orderId,
-          testType,
-          orgId: accountId,
-        });
+        let externalOrderId = `SJ-${orderId.slice(-8).toUpperCase()}`;
+        let barcodeUrl: string | null = null;
+        let laboratory: "connected" | "pending_connection" = "pending_connection";
+        if (labConfigured()) {
+          try {
+            const vendorOrder = await getLabVendorProvider().createOrder({
+              driverId: orderId,
+              testType,
+              orgId: accountId,
+            });
+            externalOrderId = vendorOrder.externalOrderId;
+            barcodeUrl = vendorOrder.barcodeUrl;
+            laboratory = "connected";
+          } catch {
+            laboratory = "pending_connection";
+          }
+        }
 
         const driver: DriverRecord = {
           id: orderId,
@@ -42,7 +53,7 @@ export const Route = createFileRoute("/api/v1/orders/dispatch")({
           cdl: body.driver?.cdl ?? "PENDING-CDL",
           testType,
           status: "COLLECTION_PENDING",
-          barcode: vendorOrder.externalOrderId,
+          barcode: externalOrderId,
           updatedAt: new Date().toISOString(),
         };
 
@@ -51,12 +62,13 @@ export const Route = createFileRoute("/api/v1/orders/dispatch")({
         const payload = {
           accepted: true,
           accountId,
-          integrationConfigured: Boolean(process.env.COMPLIANCE_API_KEY),
+          integrationConfigured: laboratory === "connected",
+          laboratory,
           order: {
             orderId,
-            barcode: vendorOrder.externalOrderId,
-            barcodeUrl: vendorOrder.barcodeUrl,
-            externalOrderId: vendorOrder.externalOrderId,
+            barcode: externalOrderId,
+            barcodeUrl,
+            externalOrderId,
             status: driver.status,
             testType,
             collectionNetwork: body.collectionNetwork ?? "SAMHSA_CERTIFIED_NETWORK",

@@ -210,7 +210,7 @@ export function activationChecklist(input: {
       label: "Billing",
       state: billingDone ? "complete" : input.billingConfigured ? "waiting" : "blocked",
       detail: billingDone
-        ? "Payment method is on file."
+        ? "The $5 per driver monthly seat is on file and was collected up front."
         : input.billingConfigured
           ? "Finish Stripe checkout. Activation happens when payment is confirmed."
           : "SJCC billing is not configured yet. No one can activate this organization until that integration is restored.",
@@ -433,17 +433,26 @@ export function collectionFindings(input: {
   orderId: string;
   rosterId?: string | null;
   driverName: string;
+  cdl?: string;
+  organizationName?: string;
+  laboratoryConnected?: boolean;
   openedOn: string;
   today: string;
   recipient?: string;
   testLabel: string;
 }): Finding[] {
   const age = ageDays(input.today, input.openedOn);
+  const who = input.cdl ? `${input.driverName} (${input.cdl})` : input.driverName;
+  const company = input.organizationName ? `${input.organizationName}: ` : "";
+  const connected = input.laboratoryConnected !== false;
+  const description = connected
+    ? `${company}${who} needs a ${input.testLabel}. Reference ${input.orderId}. Use the collection site on the laboratory order. SJCC records the result when it comes back.`
+    : `${company}${who} was selected for a ${input.testLabel}. Reference ${input.orderId}. The laboratory connection is not live, so SJCC operations has this order. Do not send the driver to a clinic until a follow-up email names the collection site.`;
   const findings: Finding[] = [
     clientNotice({
       dedupeKey: `client:collection:${input.orderId}`,
-      title: `${input.testLabel} collection for ${input.driverName}`,
-      description: `${input.driverName} is scheduled for ${input.testLabel}. Collection stays automatic until a laboratory result arrives.`,
+      title: `${input.testLabel} for ${input.driverName}`,
+      description,
       severity: age >= 3 ? "high" : "normal",
       source: "random",
       rosterId: input.rosterId ?? undefined,
@@ -451,6 +460,17 @@ export function collectionFindings(input: {
       template: "collection_due",
     }),
   ];
+  if (!connected) {
+    findings.push({
+      dedupeKey: `owner:lab_order:${input.orderId}`,
+      audience: "owner",
+      severity: "high",
+      source: "random",
+      rosterId: input.rosterId ?? undefined,
+      title: `Place the laboratory order for ${input.driverName}`,
+      description: `${company}${who} needs a ${input.testLabel}. Reference ${input.orderId}. Opened ${input.openedOn}. The laboratory API is not connected, so this was not sent to Labcorp. Place it only after the client's testing seat is paid.`,
+    });
+  }
   if (age >= 7) {
     findings.push({
       dedupeKey: `owner:collection:${input.orderId}`,

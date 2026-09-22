@@ -1,10 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 export function verifyWebhookSignature(rawBody: string, signatureHeader: string | null): boolean {
-  const secret = process.env.COMPLIANCE_WEBHOOK_SECRET;
-  if (!secret || secret === "your_webhook_secret") {
-    return true;
-  }
+  const secret = process.env.COMPLIANCE_WEBHOOK_SECRET?.trim();
+  if (!secret || secret === "your_webhook_secret") return false;
   if (!signatureHeader) return false;
 
   const provided = signatureHeader.replace(/^sha256=/i, "").trim();

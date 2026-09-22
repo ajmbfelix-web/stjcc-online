@@ -1,8 +1,23 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
 import { applyBillingEvent } from "@/lib/automation/engine";
+import { rememberSubscription } from "@/lib/billing/seats.server";
 import { getStripe } from "@/lib/billing/stripe.server";
 import { getSql } from "@/lib/db";
 import { recordStripeEvent } from "@/lib/portal/store";
+
+type StripeObject = {
+  id?: string;
+  metadata?: { onboardingId?: string };
+  customer?: string | { id?: string };
+  subscription?: string | { id?: string };
+  parent?: { subscription_details?: { metadata?: { onboardingId?: string }; subscription?: string } };
+  subscription_details?: { metadata?: { onboardingId?: string } };
+};
+
+function readId(value: string | { id?: string } | undefined): string | undefined {
+  if (typeof value === "string") return value;
+  return value?.id;
+}
 
 export const Route = createFileRoute("/api/billing/webhook")({
   server: {
@@ -19,14 +34,44 @@ export const Route = createFileRoute("/api/billing/webhook")({
         }
         const firstDelivery = await recordStripeEvent(event.id, event.type, event);
         if (!firstDelivery) return Response.json({ received: true, duplicate: true });
-        const object = event.data.object as { metadata?: { onboardingId?: string }; customer?: string | { id?: string } };
-        const customer = object.customer;
-        const customerId = typeof customer === "string" ? customer : customer?.id;
-        const decision = await applyBillingEvent(await getSql(), {
+        const object = event.data.object as StripeObject;
+        const customerId = readId(object.customer);
+        let subscriptionId = readId(object.subscription) ?? object.parent?.subscription_details?.subscription;
+        let onboardingId =
+          object.metadata?.onboardingId ??
+          object.subscription_details?.metadata?.onboardingId ??
+          object.parent?.subscription_details?.metadata?.onboardingId;
+        const sql = await getSql();
+        if (!onboardingId && subscriptionId) {
+          try {
+            const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
+            onboardingId = subscription.metadata?.onboardingId;
+          } catch {
+            subscriptionId = subscriptionId;
+          }
+        }
+        if (!onboardingId && (customerId || subscriptionId)) {
+          const rows = await sql.query<{ id: string }>(
+            `select id from client_onboarding
+             where ($1::text is not null and stripe_customer_id = $1)
+                or ($2::text is not null and stripe_subscription_id = $2)
+             limit 1`,
+            [customerId ?? null, subscriptionId ?? null],
+          );
+          onboardingId = rows[0]?.id;
+        }
+        const decision = await applyBillingEvent(sql, {
           eventType: event.type,
-          onboardingId: object.metadata?.onboardingId,
+          onboardingId,
           customerId,
         });
+        if (onboardingId) {
+          try {
+            await rememberSubscription(sql, { onboardingId, customerId, subscriptionId });
+          } catch {
+            // The billing decision already landed. The next paid invoice can store the subscription id.
+          }
+        }
         return Response.json({ received: true, decision });
       },
     },

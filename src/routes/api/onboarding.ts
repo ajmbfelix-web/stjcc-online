@@ -3,6 +3,7 @@ import { runAutomation } from "@/lib/automation/engine";
 import { newClaimToken } from "@/lib/automation/tokens";
 import { acceptAgreement, createOnboarding } from "@/lib/portal/store";
 import { getStripe, stripeConfigured } from "@/lib/billing/stripe.server";
+import { assertDriverPrice } from "@/lib/billing/seats.server";
 import { resendConfigured, sendOnboardingReceipt } from "@/lib/notifications/resend.server";
 import { getSessionUser } from "@/lib/auth/verify.server";
 import { getSql } from "@/lib/db";
@@ -25,8 +26,8 @@ export const Route = createFileRoute("/api/onboarding")({
         const driverCount = typeof body.driverCount === "number" ? body.driverCount : 0;
         const services = Array.isArray(body.services) ? body.services.filter((value): value is string => typeof value === "string") : [];
 
-        if (!organizationName || !dotNumber || !contactName || !contactEmail || driverCount < 0) {
-          return Response.json({ error: "Complete organization and contact information is required" }, { status: 400 });
+        if (!organizationName || !dotNumber || !contactName || !contactEmail || driverCount < 1) {
+          return Response.json({ error: "Organization, contact, and at least one driver are required" }, { status: 400 });
         }
 
         try {
@@ -63,15 +64,20 @@ export const Route = createFileRoute("/api/onboarding")({
           await runAutomation({ reason: "onboarding", force: true });
           let checkoutUrl: string | undefined;
           if (stripeConfigured()) {
+            await assertDriverPrice();
             const origin = process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin;
             const session = await getStripe().checkout.sessions.create({
               mode: "subscription",
               customer_email: contactEmail,
-              line_items: [{ price: process.env.STRIPE_PRICE_ID as string, quantity: Math.max(1, driverCount) }],
+              payment_method_collection: "always",
+              line_items: [{ price: process.env.STRIPE_PRICE_ID as string, quantity: driverCount }],
               success_url: `${origin}/onboarding?complete=1`,
               cancel_url: `${origin}/onboarding?cancelled=1`,
               metadata: { onboardingId: onboarding.id, driverCount: String(driverCount) },
-              subscription_data: { metadata: { onboardingId: onboarding.id } },
+              subscription_data: {
+                description: "SJCC compliance — $5 per testing driver per month, collected up front",
+                metadata: { onboardingId: onboarding.id },
+              },
             });
             checkoutUrl = session.url ?? undefined;
           }

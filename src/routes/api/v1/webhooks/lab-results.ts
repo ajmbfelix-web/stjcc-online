@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { syncLabStatus } from "@/lib/automation/engine";
 import { verifyWebhookSignature } from "@/lib/compliance/hmac";
-import { pushEvent, upsertDriver } from "@/lib/compliance/store";
+import { pushEvent } from "@/lib/compliance/store";
 import type { ScreeningStatus, WebhookPayload } from "@/lib/compliance/types";
 import { getSql } from "@/lib/db";
-import { getLabVendorProvider } from "@/lib/vendors/adapter";
+import { MockLabProvider } from "@/lib/vendors/adapter";
 
 function mapStatus(input: string | undefined): ScreeningStatus | null {
   if (input === "NEGATIVE" || input === "CLEARED") return "CLEARED";
@@ -43,39 +43,33 @@ export const Route = createFileRoute("/api/v1/webhooks/lab-results")({
 
         let parsed;
         try {
-          parsed = await getLabVendorProvider().parseWebhook(
+          parsed = await new MockLabProvider().parseWebhook(
             new Request(request.url, { method: "POST", headers: request.headers, body: raw }),
           );
         } catch {
           return Response.json({ error: "Invalid vendor webhook payload" }, { status: 400 });
         }
 
-        const accountId = body.accountId || body.orgId || process.env.COMPLIANCE_ACCOUNT_ID;
-        if (!accountId) return Response.json({ error: "accountId is required" }, { status: 400 });
         const nextStatus = body.status ? mapStatus(body.status) : mapVendorEvent(parsed.eventType);
         if (!nextStatus) return Response.json({ error: "Unsupported laboratory result" }, { status: 400 });
 
         const sql = await getSql();
-        const matched = await sql.query<{ id: string; name: string; status: ScreeningStatus }>(
-          `select id, name, status from compliance_drivers
-           where account_id = $1 and (($2::text is not null and id = $2) or ($3::text is not null and barcode = $3))
-           limit 1`,
-          [accountId, body.driverId ?? parsed.externalOrderId, body.barcode ?? null],
+        const externalId = body.driverId || body.orderId || parsed.externalOrderId;
+        const barcode = body.barcode ?? null;
+        const hintedAccount = body.accountId || body.orgId || null;
+        const matched = await sql.query<{ id: string; account_id: string; name: string; status: ScreeningStatus }>(
+          `select id, account_id, name, status from compliance_drivers
+           where ($1::text is not null and (id = $1 or barcode = $1))
+              or ($2::text is not null and barcode = $2)
+           limit 2`,
+          [externalId ?? null, barcode],
         );
-        let driver = matched[0];
-        if (!driver && parsed.externalOrderId) {
-          const created = await upsertDriver(accountId, {
-            id: parsed.externalOrderId,
-            name: "Inbound Screening Record",
-            cdl: "UNKNOWN",
-            testType: "5_PANEL",
-            status: "COLLECTION_PENDING",
-            barcode: body.barcode ?? `SJ-${parsed.externalOrderId.slice(-8).toUpperCase()}`,
-            updatedAt: new Date().toISOString(),
-          });
-          driver = { id: created.id, name: created.name, status: "COLLECTION_PENDING" };
+        if (matched.length !== 1) return Response.json({ error: "No screening order matched this result" }, { status: 404 });
+        const driver = matched[0];
+        if (hintedAccount && hintedAccount !== driver.account_id) {
+          return Response.json({ error: "Result does not belong to the supplied organization" }, { status: 409 });
         }
-        if (!driver) return Response.json({ error: "No screening order matched this result" }, { status: 404 });
+        const accountId = driver.account_id;
 
         const outcome = await syncLabStatus(sql, {
           accountId,

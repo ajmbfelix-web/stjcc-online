@@ -68,6 +68,17 @@ export class MockLabProvider implements LabVendorProvider {
   }
 }
 
+export function labConfigured(): boolean {
+  const vendor = process.env.LAB_VENDOR?.trim() ?? "";
+  const base = process.env.LAB_API_BASE_URL?.trim() ?? "";
+  const key = process.env.LAB_API_KEY?.trim() ?? "";
+  if (!vendor || !base || !key) return false;
+  return ![vendor, base, key].some((value) => value === "..." || value.includes("..."));
+}
+
 export function getLabVendorProvider(): LabVendorProvider {
-  return new MockLabProvider();
+  const vendor = process.env.LAB_VENDOR?.trim().toLowerCase();
+  if (vendor === "mock") return new MockLabProvider();
+  if (!labConfigured()) throw new Error("Laboratory connection is not configured");
+  throw new Error("The laboratory vendor is not connected yet. Orders stay inside SJCC until the Labcorp instructions are added.");
 }

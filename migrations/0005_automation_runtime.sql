@@ -34,6 +34,19 @@ create table if not exists driver_roster (
 create index if not exists driver_roster_account_idx
   on driver_roster (account_id, employment_status);
 
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'random_selections' and column_name = 'random_pool_id'
+  ) and not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'random_selections' and column_name = 'test_kind'
+  ) then
+    alter table random_selections rename to random_selections_legacy;
+  end if;
+end $$;
+
 create table if not exists random_selections (
   id text primary key,
   account_id text not null,

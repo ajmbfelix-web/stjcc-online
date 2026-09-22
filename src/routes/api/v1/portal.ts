@@ -78,11 +78,12 @@ export const Route = createFileRoute("/api/v1/portal")({
             services: unknown;
             status: string;
             billingStatus: string;
+            billedDrivers: number;
             createdAt: string;
           }>(
             `select id, organization_name as "organizationName", dot_number as "dotNumber", contact_name as "contactName",
                     contact_email as "contactEmail", driver_count as "driverCount", services, status,
-                    billing_status as "billingStatus", created_at as "createdAt"
+                    billing_status as "billingStatus", billed_driver_count as "billedDrivers", created_at as "createdAt"
              from client_onboarding where id = $1`,
             [access.onboardingId],
           );
@@ -110,7 +111,7 @@ export const Route = createFileRoute("/api/v1/portal")({
           const [roster, selections, exceptions] = await Promise.all([
             sql.query(
               `select id, name, cdl, medical_card_expires_on as "medicalCardExpiresOn", mvr_reviewed_on as "mvrReviewedOn",
-                      clearinghouse_queried_on as "clearinghouseQueriedOn", hired_on as "hiredOn", in_random_pool as "inRandomPool"
+                      clearinghouse_queried_on as "clearinghouseQueriedOn", hired_on as "hiredOn", in_random_pool as "inRandomPool", needs_testing as "needsTesting"
                from driver_roster
                where account_id = $1 and employment_status = 'active'
                order by name`,
