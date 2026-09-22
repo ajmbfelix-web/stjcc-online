@@ -8,7 +8,11 @@ create type public.subscription_status as enum (
   'inactive'
 );
 
-create type public.organization_member_role as enum ('owner');
+create type public.organization_member_role as enum (
+  'client_admin',
+  'client_operator',
+  'viewer'
+);
 
 create type public.driver_status as enum ('active', 'inactive', 'removed');
 
@@ -20,7 +24,15 @@ create type public.testing_event_type as enum (
   'Hair',
   'MVR'
 );
-
+create type public.onboarding_status as enum (
+  'invited',
+  'in_progress',
+  'agreement_pending',
+  'payment_pending',
+  'active',
+  'suspended',
+  'cancelled'
+);
 create type public.testing_event_status as enum (
   'ordered',
   'collection_pending',
@@ -36,6 +48,11 @@ create table public.organizations (
   id uuid primary key default gen_random_uuid(),
   name text not null check (length(trim(name)) > 0),
   dot_number text not null unique check (dot_number ~ '^[0-9]{1,8}$'),
+  legal_name text,
+  dba_name text,
+  onboarding_status public.onboarding_status not null default 'invited',
+  primary_contact_email text,
+  billing_contact_email text,
   subscription_status public.subscription_status not null default 'inactive',
   stripe_customer_id text unique,
   stripe_subscription_id text unique,
@@ -45,7 +62,7 @@ create table public.organizations (
 create table public.organization_memberships (
   org_id uuid not null references public.organizations(id) on delete cascade,
   user_id uuid not null references auth.users(id) on delete cascade,
-  role public.organization_member_role not null default 'owner',
+  role public.organization_member_role not null default 'client_admin',
   created_at timestamptz not null default now(),
   primary key (org_id, user_id)
 );
@@ -111,13 +128,71 @@ create table public.random_selections (
   unique (random_pool_id, driver_id)
 );
 
+create table public.sjcc_admins (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+create table public.agreement_versions (
+  id uuid primary key default gen_random_uuid(),
+  agreement_type text not null,
+  version text not null,
+  document_text text not null,
+  document_hash text not null,
+  published_at timestamptz not null default now(),
+  retired_at timestamptz,
+  unique (agreement_type, version),
+  unique (agreement_type, document_hash)
+);
+
+create table public.agreement_acceptances (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references public.organizations(id) on delete cascade,
+  agreement_version_id uuid not null references public.agreement_versions(id) on delete restrict,
+  user_id uuid not null references auth.users(id) on delete restrict,
+  accepted_at timestamptz not null default now(),
+  ip_address inet,
+  user_agent text,
+  stripe_checkout_session_id text,
+  document_hash text not null check (length(trim(document_hash)) > 0)
+);
+
+create table public.audit_events (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid references public.organizations(id) on delete set null,
+  actor_user_id uuid references auth.users(id) on delete set null,
+  action text not null,
+  entity_type text not null,
+  entity_id text,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
 create index drivers_org_id_idx on public.drivers(org_id);
 create index testing_events_org_status_idx on public.testing_events(org_id, status);
 create index testing_events_external_order_idx on public.testing_events(external_order_id);
 create index system_exceptions_org_open_idx on public.system_exceptions(org_id, resolved) where resolved = false;
 create index random_selections_org_id_idx on public.random_selections(org_id);
+create index agreement_acceptances_org_id_idx on public.agreement_acceptances(org_id, accepted_at desc);
+create index audit_events_org_created_idx on public.audit_events(org_id, created_at desc);
 
-create or replace function public.is_org_owner(target_org_id uuid)
+create or replace function public.is_platform_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.sjcc_admins admin
+    where admin.user_id = (select auth.uid())
+  );
+$$;
+
+revoke all on function public.is_platform_admin() from public;
+grant execute on function public.is_platform_admin() to authenticated;
+
+create or replace function public.is_org_member(target_org_id uuid)
 returns boolean
 language sql
 stable
@@ -129,8 +204,21 @@ as $$
     from public.organization_memberships membership
     where membership.org_id = target_org_id
       and membership.user_id = (select auth.uid())
-      and membership.role = 'owner'
+      and membership.role in ('client_admin', 'client_operator', 'viewer')
   );
+$$;
+
+revoke all on function public.is_org_member(uuid) from public;
+grant execute on function public.is_org_member(uuid) to authenticated;
+
+create or replace function public.is_org_owner(target_org_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select public.is_platform_admin() or public.is_org_member(target_org_id);
 $$;
 
 revoke all on function public.is_org_owner(uuid) from public;
@@ -187,6 +275,10 @@ alter table public.testing_events enable row level security;
 alter table public.system_exceptions enable row level security;
 alter table public.random_pools enable row level security;
 alter table public.random_selections enable row level security;
+alter table public.sjcc_admins enable row level security;
+alter table public.agreement_versions enable row level security;
+alter table public.agreement_acceptances enable row level security;
+alter table public.audit_events enable row level security;
 
 create policy organizations_owner_select on public.organizations
 for select to authenticated using (public.is_org_owner(id));
@@ -250,3 +342,27 @@ create policy random_selections_owner_update on public.random_selections
 for update to authenticated using (public.is_org_owner(org_id)) with check (public.is_org_owner(org_id));
 create policy random_selections_owner_delete on public.random_selections
 for delete to authenticated using (public.is_org_owner(org_id));
+
+create policy sjcc_admins_self_select on public.sjcc_admins
+for select to authenticated using (user_id = (select auth.uid()) or public.is_platform_admin());
+
+create policy agreement_versions_authenticated_select on public.agreement_versions
+for select to authenticated using (retired_at is null or public.is_platform_admin());
+
+create policy agreement_versions_admin_insert on public.agreement_versions
+for insert to authenticated with check (public.is_platform_admin());
+
+create policy agreement_versions_admin_update on public.agreement_versions
+for update to authenticated using (public.is_platform_admin()) with check (public.is_platform_admin());
+
+create policy agreement_acceptances_member_select on public.agreement_acceptances
+for select to authenticated using (public.is_org_owner(org_id));
+
+create policy agreement_acceptances_member_insert on public.agreement_acceptances
+for insert to authenticated with check (
+  public.is_org_owner(org_id)
+  and user_id = (select auth.uid())
+);
+
+create policy audit_events_owner_select on public.audit_events
+for select to authenticated using (org_id is null and public.is_platform_admin() or public.is_org_owner(org_id));
