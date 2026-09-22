@@ -1,20 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getSessionUser } from "@/lib/auth/verify.server";
 import { listDrivers, listEvents } from "@/lib/compliance/store";
+import { requirePortalAccess } from "@/lib/portal/access.server";
 
 export const Route = createFileRoute("/api/v1/dashboard")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const bearerToken = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-        const user = await getSessionUser(bearerToken);
-        if (!user) {
-          return Response.json({ error: "Owner authentication required" }, { status: 401 });
+        try {
+          const access = await requirePortalAccess(request);
+          const requested = new URL(request.url).searchParams.get("accountId");
+          const accountId = access.kind === "owner" ? requested : access.onboardingId;
+          if (!accountId || access.kind === "pending_client" || access.kind === "unassigned") {
+            return Response.json({ error: "An active organization workspace is required" }, { status: 403 });
+          }
+          const [drivers, events] = await Promise.all([listDrivers(accountId), listEvents(accountId)]);
+          return Response.json({ accountId, drivers, events });
+        } catch (error) {
+          return Response.json({ error: error instanceof Error ? error.message : "Authentication required" }, { status: 401 });
         }
-
-        const accountId = process.env.COMPLIANCE_ACCOUNT_ID ?? "SJCC-DEMO";
-        const [drivers, events] = await Promise.all([listDrivers(accountId), listEvents(accountId)]);
-        return Response.json({ drivers, events });
       },
     },
   },

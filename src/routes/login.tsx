@@ -17,7 +17,7 @@ function ClientLogin() {
         <Badge tone="live" className="mt-8">Client portal</Badge>
         <h1 className="mt-4 text-4xl">Sign in to your compliance workspace.</h1>
         <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-          Access your organization&apos;s drivers, testing status, reports, and required actions.
+          Access your organization&apos;s drivers, testing status, and required actions. SJCC operators use the same sign-in and open the exception center.
         </p>
         <div className="mt-7 flex justify-center"><SignInButtons callbackURL="/dashboard" /></div>
         <p className="mt-6 text-center text-sm text-muted-foreground">

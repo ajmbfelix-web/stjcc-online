@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { runAutomation } from "@/lib/automation/engine";
+import { newClaimToken } from "@/lib/automation/tokens";
 import { acceptAgreement, createOnboarding } from "@/lib/portal/store";
 import { getStripe, stripeConfigured } from "@/lib/billing/stripe.server";
 import { resendConfigured, sendOnboardingReceipt } from "@/lib/notifications/resend.server";
 import { getSessionUser } from "@/lib/auth/verify.server";
+import { getSql } from "@/lib/db";
 
 export const Route = createFileRoute("/api/onboarding")({
   server: {
@@ -27,7 +30,18 @@ export const Route = createFileRoute("/api/onboarding")({
         }
 
         try {
-          const onboarding = await createOnboarding({ organizationName, dotNumber, contactName, contactEmail, driverCount, services });
+          const claim = newClaimToken();
+          const user = await getSessionUser(request.headers.get("authorization")?.replace(/^Bearer\s+/i, ""));
+          const onboarding = await createOnboarding({
+            organizationName,
+            dotNumber,
+            contactName,
+            contactEmail,
+            driverCount,
+            services,
+            claimTokenHash: claim.hash,
+            submittedByUserId: user?.id,
+          });
           await acceptAgreement({
             onboardingId: onboarding.id,
             agreementVersionId: "sjcc-standard-2026-09",
@@ -39,19 +53,23 @@ export const Route = createFileRoute("/api/onboarding")({
             ipAddress: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim(),
             userAgent: request.headers.get("user-agent") ?? undefined,
           });
-          const user = await getSessionUser(request.headers.get("authorization")?.replace(/^Bearer\s+/i, ""));
           if (user) {
-            const sql = await (await import("@/lib/db")).getSql();
-            await sql.query(`insert into client_user_access (user_id, onboarding_id) values ($1, $2) on conflict (user_id) do update set onboarding_id = excluded.onboarding_id`, [user.id, onboarding.id]);
+            const sql = await getSql();
+            await sql.query(
+              `insert into client_user_access (user_id, onboarding_id) values ($1, $2) on conflict (user_id) do update set onboarding_id = excluded.onboarding_id`,
+              [user.id, onboarding.id],
+            );
           }
+          await runAutomation({ reason: "onboarding", force: true });
           let checkoutUrl: string | undefined;
           if (stripeConfigured()) {
+            const origin = process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin;
             const session = await getStripe().checkout.sessions.create({
               mode: "subscription",
               customer_email: contactEmail,
               line_items: [{ price: process.env.STRIPE_PRICE_ID as string, quantity: Math.max(1, driverCount) }],
-              success_url: `${process.env.NEXT_PUBLIC_APP_URL ?? request.url}/onboarding?complete=1`,
-              cancel_url: `${process.env.NEXT_PUBLIC_APP_URL ?? request.url}/onboarding?cancelled=1`,
+              success_url: `${origin}/onboarding?complete=1`,
+              cancel_url: `${origin}/onboarding?cancelled=1`,
               metadata: { onboardingId: onboarding.id, driverCount: String(driverCount) },
               subscription_data: { metadata: { onboardingId: onboarding.id } },
             });
@@ -60,7 +78,7 @@ export const Route = createFileRoute("/api/onboarding")({
           if (resendConfigured()) {
             await sendOnboardingReceipt(contactEmail, onboarding.id);
           }
-          return Response.json({ onboardingId: onboarding.id, status: "payment_pending", checkoutUrl }, { status: 201 });
+          return Response.json({ onboardingId: onboarding.id, status: "payment_pending", checkoutUrl, claimToken: claim.token }, { status: 201 });
         } catch (error) {
           return Response.json({ error: error instanceof Error ? error.message : "Onboarding failed" }, { status: 400 });
         }

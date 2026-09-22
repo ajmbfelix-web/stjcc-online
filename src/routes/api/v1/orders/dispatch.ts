@@ -1,17 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { pushEvent, upsertDriver } from "@/lib/compliance/store";
 import type { DriverRecord, OrderRequest, TestType } from "@/lib/compliance/types";
-import { getSessionUser } from "@/lib/auth/verify.server";
+import { requirePortalAccess } from "@/lib/portal/access.server";
 import { getLabVendorProvider } from "@/lib/vendors/adapter";
 
 export const Route = createFileRoute("/api/v1/orders/dispatch")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const bearerToken = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-        const user = await getSessionUser(bearerToken);
-        if (!user) {
-          return Response.json({ error: "Owner authentication required" }, { status: 401 });
+        let access;
+        try {
+          access = await requirePortalAccess(request);
+        } catch (error) {
+          return Response.json({ error: error instanceof Error ? error.message : "Authentication required" }, { status: 401 });
+        }
+        if (access.kind !== "owner" && access.kind !== "active_client") {
+          return Response.json({ error: "An active organization workspace is required" }, { status: 403 });
         }
 
         let body: OrderRequest = {};
@@ -21,7 +25,8 @@ export const Route = createFileRoute("/api/v1/orders/dispatch")({
           return Response.json({ error: "Invalid JSON payload" }, { status: 400 });
         }
 
-        const accountId = process.env.COMPLIANCE_ACCOUNT_ID ?? body.accountId ?? "SJCC-DEMO";
+        const accountId = access.kind === "owner" ? body.accountId : access.onboardingId;
+        if (!accountId) return Response.json({ error: "accountId is required" }, { status: 400 });
         const testType: TestType = body.testType ?? "5_PANEL";
         const orderId = `ord_${Date.now().toString(36)}`;
         const provider = getLabVendorProvider();

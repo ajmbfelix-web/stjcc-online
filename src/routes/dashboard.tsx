@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, CheckCircle2, ClipboardList, Users } from "lucide-react";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Wordmark } from "@/components/logo";
@@ -8,16 +8,274 @@ import { SignInButtons, SignInGate } from "@/lib/auth/gates";
 import { getBearerToken } from "@/lib/auth/client";
 import { pageTitle } from "@/lib/seo";
 
-export const Route = createFileRoute("/dashboard")({ head: () => ({ meta: [{ title: pageTitle("Client Compliance Portal") }, { name: "robots", content: "noindex, nofollow" }] }), component: ClientPortal });
+export const Route = createFileRoute("/dashboard")({
+  head: () => ({ meta: [{ title: pageTitle("Client Compliance Portal") }, { name: "robots", content: "noindex, nofollow" }] }),
+  component: ClientPortal,
+});
 
-type ClientData = { access: { kind: "client" | "unassigned"; onboardingId?: string; role?: string }; onboarding: { organizationName: string; dotNumber: string; driverCount: number; status: string } | null; drivers: Array<{ id: string; name: string; testType: string; status: string; updatedAt: string }>; events: Array<{ id: string; source: string; path: string; receivedAt: string }>; exceptions: Array<{ id: string; title: string; description: string; severity: string; createdAt: string }> };
+type ChecklistItem = { id: string; label: string; state: "complete" | "waiting" | "blocked"; detail: string };
+type RosterDriver = {
+  id: string;
+  name: string;
+  cdl: string;
+  medicalCardExpiresOn: string | null;
+  mvrReviewedOn: string | null;
+  clearinghouseQueriedOn: string | null;
+  hiredOn: string | null;
+};
+type ClientData = {
+  access: { kind: "active_client" | "pending_client" | "unassigned" | "owner"; status?: string; billingStatus?: string };
+  onboarding?: { organizationName: string; dotNumber: string; status: string; billingStatus?: string } | null;
+  checklist?: ChecklistItem[];
+  roster?: RosterDriver[];
+  selections?: Array<{ id: string; testKind: string; name: string; orderStatus: string | null }>;
+  exceptions?: Array<{ id: string; title: string; description: string; severity: string }>;
+};
+
+function authHeaders(json = false): HeadersInit {
+  const token = getBearerToken();
+  return {
+    ...(json ? { "content-type": "application/json" } : {}),
+    ...(token ? { authorization: `Bearer ${token}` } : {}),
+  };
+}
 
 function ClientPortal() {
   const [data, setData] = useState<ClientData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  useEffect(() => { const token = getBearerToken(); fetch("/api/v1/portal", { headers: token ? { authorization: `Bearer ${token}` } : undefined }).then(async (response) => { const json = (await response.json()) as ClientData & { error?: string }; if (!response.ok) throw new Error(json.error ?? "Portal unavailable"); setData(json); }).catch((err) => setError(err instanceof Error ? err.message : "Portal unavailable")); }, []);
-  return <SignInGate fallback={<ClientGate />}><main className="min-h-dvh bg-background"><header className="border-b border-border"><div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6"><div className="flex items-center gap-4"><Link to="/" aria-label="Back to site" className="inline-flex size-10 items-center justify-center rounded-md border border-border"><ArrowLeft className="size-4" /></Link><Wordmark compact /></div><Badge tone="live">Client portal</Badge></div></header><div className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6">{error ? <section className="rounded-xl border border-destructive/30 bg-card p-6 text-sm text-destructive">{error}</section> : data?.access.kind === "unassigned" ? <OnboardingRequired /> : <><div><p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">{data?.onboarding?.organizationName ?? "Your organization"}</p><h1 className="mt-3 text-5xl">Your compliance workspace.</h1><p className="mt-4 max-w-2xl text-muted-foreground">The next required action is always visible. Routine work stays automatic.</p></div><section className="grid gap-4 sm:grid-cols-3"><Stat icon={Users} label="Drivers" value={data?.drivers.length ?? 0} /><Stat icon={ClipboardList} label="Open actions" value={data?.exceptions.length ?? 0} /><Stat icon={CheckCircle2} label="Activity events" value={data?.events.length ?? 0} /></section><section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]"><div className="rounded-xl border border-border bg-card"><div className="border-b border-border px-5 py-4"><h2 className="text-2xl">Driver compliance</h2><p className="mt-1 text-sm text-muted-foreground">Your current roster and automated screening status.</p></div><div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead className="border-b border-border font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground"><tr><th className="px-5 py-3">Driver</th><th className="px-5 py-3">Service</th><th className="px-5 py-3">Status</th></tr></thead><tbody>{data?.drivers.map((driver) => <tr key={driver.id} className="border-b border-border/70 last:border-0"><td className="px-5 py-4 font-medium">{driver.name}</td><td className="px-5 py-4 text-muted-foreground">{driver.testType}</td><td className="px-5 py-4"><Badge tone={driver.status === "CLEARED" ? "ok" : driver.status === "EXCEPTION" ? "danger" : "warn"}>{driver.status.replaceAll("_", " ")}</Badge></td></tr>)}</tbody></table>{!data?.drivers.length && <p className="p-10 text-center text-sm text-muted-foreground">Your roster is ready for employee onboarding.</p>}</div></div><div className="rounded-xl border border-border bg-card"><div className="border-b border-border px-5 py-4"><h2 className="text-2xl">Required actions</h2></div><div className="space-y-3 p-4">{data?.exceptions.map((item) => <article key={item.id} className="rounded-lg border border-border bg-background p-4"><Badge tone="danger">{item.severity}</Badge><h3 className="mt-3 text-lg">{item.title}</h3><p className="mt-1 text-sm text-muted-foreground">{item.description}</p></article>)}{!data?.exceptions.length && <div className="p-6 text-center"><CheckCircle2 className="mx-auto size-7 text-ok" /><p className="mt-3 text-sm text-muted-foreground">No action required right now.</p></div>}</div></div></section></>}</div></main></SignInGate>;
+  const [notice, setNotice] = useState<string | null>(null);
+
+  async function load() {
+    const response = await fetch("/api/v1/portal", { headers: authHeaders(), credentials: "include" });
+    const json = (await response.json()) as ClientData & { error?: string };
+    if (!response.ok) throw new Error(json.error ?? "Portal unavailable");
+    setData(json);
+  }
+
+  useEffect(() => {
+    void load().catch((err) => setError(err instanceof Error ? err.message : "Portal unavailable"));
+  }, []);
+
+  async function saveDriver(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setNotice(null);
+    const form = new FormData(event.currentTarget);
+    const response = await fetch("/api/v1/roster", {
+      method: "POST",
+      credentials: "include",
+      headers: authHeaders(true),
+      body: JSON.stringify({
+        name: form.get("name"),
+        cdl: form.get("cdl"),
+        hiredOn: form.get("hiredOn") || null,
+        medicalCardExpiresOn: form.get("medicalCardExpiresOn") || null,
+        mvrReviewedOn: form.get("mvrReviewedOn") || null,
+        clearinghouseQueriedOn: form.get("clearinghouseQueriedOn") || null,
+      }),
+    });
+    const json = (await response.json()) as { error?: string };
+    if (!response.ok) {
+      setNotice(json.error ?? "Could not save the driver");
+      return;
+    }
+    event.currentTarget.reset();
+    setNotice("Driver saved. Qualification tracking and any required test were scheduled automatically.");
+    await load();
+  }
+
+  return (
+    <SignInGate fallback={<ClientGate />}>
+      <main className="min-h-dvh bg-background">
+        <header className="border-b border-border">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+            <div className="flex items-center gap-4">
+              <Link to="/" aria-label="Back to site" className="inline-flex size-10 items-center justify-center rounded-md border border-border">
+                <ArrowLeft className="size-4" />
+              </Link>
+              <Wordmark compact />
+            </div>
+            <Badge tone="live">Client portal</Badge>
+          </div>
+        </header>
+        <div className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6">
+          {error ? <section className="rounded-xl border border-destructive/30 bg-card p-6 text-sm text-destructive">{error}</section> : null}
+          {data?.access.kind === "owner" ? <Navigate to="/owner" /> : null}
+          {data?.access.kind === "unassigned" ? <OnboardingRequired /> : null}
+          {data?.access.kind === "pending_client" ? <PendingState data={data} /> : null}
+          {data?.access.kind === "active_client" ? (
+            <>
+              <div>
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">{data.onboarding?.organizationName ?? "Your organization"}</p>
+                <h1 className="mt-3 text-5xl">Compliance is running.</h1>
+                <p className="mt-4 max-w-2xl text-muted-foreground">
+                  Random selections, expiration tracking, and laboratory results update themselves. You only need to keep the roster current.
+                </p>
+              </div>
+              {data.access.billingStatus === "past_due" ? (
+                <section className="rounded-xl border border-warn/40 bg-card p-5 text-sm">
+                  The last subscription payment failed. Update the card in Stripe. Tracking stays on until the subscription itself ends.
+                </section>
+              ) : null}
+              <section className="grid gap-4 sm:grid-cols-3">
+                <Stat label="Drivers" value={data.roster?.length ?? 0} />
+                <Stat label="Actions for you" value={data.exceptions?.length ?? 0} />
+                <Stat label="Draws this quarter" value={data.selections?.length ?? 0} />
+              </section>
+              <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+                <div className="rounded-xl border border-border bg-card">
+                  <div className="border-b border-border px-5 py-4">
+                    <h2 className="text-2xl">Roster</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">Existing drivers need their real hire date so a new pre-employment test is not ordered.</p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[680px] text-left text-sm">
+                      <thead className="border-b border-border font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                        <tr>
+                          <th className="px-5 py-3">Driver</th>
+                          <th className="px-5 py-3">Medical</th>
+                          <th className="px-5 py-3">MVR</th>
+                          <th className="px-5 py-3">Clearinghouse</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {data.roster?.map((driver) => (
+                          <tr key={driver.id} className="border-b border-border/70 last:border-0">
+                            <td className="px-5 py-4">
+                              <div className="font-medium">{driver.name}</div>
+                              <div className="font-mono text-xs text-muted-foreground">{driver.cdl}</div>
+                            </td>
+                            <td className="px-5 py-4">{driver.medicalCardExpiresOn ?? "Missing"}</td>
+                            <td className="px-5 py-4">{driver.mvrReviewedOn ?? "Missing"}</td>
+                            <td className="px-5 py-4">{driver.clearinghouseQueriedOn ?? "Missing"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {!data.roster?.length ? <p className="p-8 text-center text-sm text-muted-foreground">Add the first driver. SJCC takes the next compliance step.</p> : null}
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <section className="rounded-xl border border-border bg-card">
+                    <div className="border-b border-border px-5 py-4">
+                      <h2 className="text-2xl">Your actions</h2>
+                    </div>
+                    <div className="space-y-3 p-4">
+                      {data.exceptions?.map((item) => (
+                        <article key={item.id} className="rounded-lg border border-border bg-background p-4">
+                          <Badge tone={item.severity === "critical" || item.severity === "high" ? "danger" : "warn"}>{item.severity}</Badge>
+                          <h3 className="mt-3 text-lg">{item.title}</h3>
+                          <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
+                        </article>
+                      ))}
+                      {!data.exceptions?.length ? (
+                        <div className="p-6 text-center">
+                          <CheckCircle2 className="mx-auto size-7 text-ok" />
+                          <p className="mt-3 text-sm text-muted-foreground">Nothing is waiting on you.</p>
+                        </div>
+                      ) : null}
+                    </div>
+                  </section>
+                  <section className="rounded-xl border border-border bg-card p-5">
+                    <h2 className="text-2xl">This quarter</h2>
+                    <ul className="mt-4 space-y-2 text-sm">
+                      {data.selections?.map((item) => (
+                        <li key={item.id} className="flex items-center justify-between gap-3">
+                          <span>{item.name}</span>
+                          <Badge tone="live">{item.testKind}</Badge>
+                        </li>
+                      ))}
+                      {!data.selections?.length ? <li className="text-muted-foreground">No one from your company was drawn this quarter.</li> : null}
+                    </ul>
+                  </section>
+                </div>
+              </section>
+              <form onSubmit={saveDriver} className="grid gap-4 rounded-xl border border-border bg-card p-6 sm:grid-cols-2">
+                <h2 className="text-2xl sm:col-span-2">Add or update a driver</h2>
+                <Field name="name" label="Driver name" required />
+                <Field name="cdl" label="CDL number" required />
+                <Field name="hiredOn" label="Hire date" type="date" />
+                <Field name="medicalCardExpiresOn" label="Medical card expires" type="date" />
+                <Field name="mvrReviewedOn" label="MVR reviewed" type="date" />
+                <Field name="clearinghouseQueriedOn" label="Clearinghouse queried" type="date" />
+                {notice ? <p className="text-sm text-muted-foreground sm:col-span-2">{notice}</p> : null}
+                <Button type="submit" className="sm:col-span-2 sm:w-fit">Save driver</Button>
+              </form>
+            </>
+          ) : null}
+        </div>
+      </main>
+    </SignInGate>
+  );
 }
-function OnboardingRequired() { return <section className="mx-auto max-w-2xl rounded-xl border border-border bg-card p-8"><Badge tone="warn">Setup required</Badge><h1 className="mt-4 text-4xl">Complete onboarding before using the portal.</h1><p className="mt-4 text-sm leading-relaxed text-muted-foreground">We need your organization details, service selections, employee count, agreement confirmations, and billing authorization before we can activate your workspace.</p><Button asChild className="mt-7"><Link to="/onboarding">Start onboarding</Link></Button></section>; }
-function ClientGate() { return <main className="grid min-h-dvh place-items-center bg-background px-4"><section className="w-full max-w-md rounded-xl border border-border bg-card p-8 text-center"><Badge tone="idle">Client portal</Badge><h1 className="mt-4 text-4xl">Sign in to continue.</h1><p className="mt-4 text-sm leading-relaxed text-muted-foreground">Client access is activated after your organization completes onboarding.</p><div className="mt-6 flex justify-center"><SignInButtons callbackURL="/dashboard" /></div><Link to="/onboarding" className="mt-5 inline-block text-sm text-accent hover:underline">Start organization onboarding</Link></section></main>; }
-function Stat({ icon: Icon, label, value }: { icon: typeof Users; label: string; value: number }) { return <div className="rounded-xl border border-border bg-card px-5 py-4"><Icon className="size-4 text-accent" /><div className="mt-4 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">{label}</div><div className="mt-2 text-3xl tabular-nums">{value}</div></div>; }
+
+function PendingState({ data }: { data: ClientData }) {
+  return (
+    <section className="mx-auto max-w-2xl rounded-xl border border-border bg-card p-8">
+      <Badge tone="warn">Activation in progress</Badge>
+      <h1 className="mt-4 text-4xl">{data.onboarding?.organizationName ?? "Your organization"} is not active yet.</h1>
+      <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+        The portal opens automatically when billing is confirmed. There is no manual approval step.
+      </p>
+      <ol className="mt-6 space-y-4">
+        {data.checklist?.map((item) => (
+          <li key={item.id} className="rounded-lg border border-border p-4">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-lg">{item.label}</h2>
+              <Badge tone={item.state === "complete" ? "ok" : item.state === "blocked" ? "danger" : "warn"}>{item.state}</Badge>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">{item.detail}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+function OnboardingRequired() {
+  return (
+    <section className="mx-auto max-w-2xl rounded-xl border border-border bg-card p-8">
+      <Badge tone="warn">Setup required</Badge>
+      <h1 className="mt-4 text-4xl">This account is not linked to an organization.</h1>
+      <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+        Start onboarding, then use the claim code while signed in. Pending organizations cannot open another company's compliance data.
+      </p>
+      <Button asChild className="mt-7">
+        <Link to="/onboarding">Start onboarding</Link>
+      </Button>
+    </section>
+  );
+}
+
+function ClientGate() {
+  return (
+    <main className="grid min-h-dvh place-items-center bg-background px-4">
+      <section className="w-full max-w-md rounded-xl border border-border bg-card p-8 text-center">
+        <Badge tone="idle">Client portal</Badge>
+        <h1 className="mt-4 text-4xl">Sign in to continue.</h1>
+        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">Active organizations land here. Incomplete setups return to onboarding.</p>
+        <div className="mt-6 flex justify-center">
+          <SignInButtons callbackURL="/dashboard" />
+        </div>
+        <Link to="/onboarding" className="mt-5 inline-block text-sm text-accent hover:underline">Start organization onboarding</Link>
+      </section>
+    </main>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl border border-border bg-card px-5 py-4">
+      <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">{label}</div>
+      <div className="mt-2 text-3xl tabular-nums">{value}</div>
+    </div>
+  );
+}
+
+function Field({ name, label, type = "text", required }: { name: string; label: string; type?: string; required?: boolean }) {
+  return (
+    <label className="text-sm font-medium">
+      {label}
+      <input name={name} type={type} required={required} className="mt-1 h-11 w-full rounded-md border border-border bg-background px-3 outline-none focus:ring-2 focus:ring-ring/50" />
+    </label>
+  );
+}

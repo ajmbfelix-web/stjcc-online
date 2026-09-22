@@ -8,6 +8,8 @@ export type OnboardingInput = {
   contactEmail: string;
   driverCount: number;
   services: string[];
+  claimTokenHash: string;
+  submittedByUserId?: string;
 };
 
 export type OnboardingRecord = OnboardingInput & {
@@ -33,12 +35,22 @@ export async function createOnboarding(input: OnboardingInput): Promise<Onboardi
   const id = `onb_${randomUUID()}`;
   const rows = await sql.query<OnboardingRecord>(
     `insert into client_onboarding
-      (id, organization_name, dot_number, contact_name, contact_email, driver_count, services)
-     values ($1, $2, $3, $4, lower($5), $6, $7::jsonb)
+      (id, organization_name, dot_number, contact_name, contact_email, driver_count, services, claim_token_hash, submitted_by_user_id)
+     values ($1, $2, $3, $4, lower($5), $6, $7::jsonb, $8, $9)
      returning id, organization_name as "organizationName", dot_number as "dotNumber",
        contact_name as "contactName", contact_email as "contactEmail", driver_count as "driverCount",
        services, status, created_at as "createdAt"`,
-    [id, input.organizationName.trim(), input.dotNumber.trim(), input.contactName.trim(), input.contactEmail.trim(), input.driverCount, JSON.stringify(input.services)],
+    [
+      id,
+      input.organizationName.trim(),
+      input.dotNumber.trim(),
+      input.contactName.trim(),
+      input.contactEmail.trim(),
+      input.driverCount,
+      JSON.stringify(input.services),
+      input.claimTokenHash,
+      input.submittedByUserId ?? null,
+    ],
   );
   return rows[0];
 }

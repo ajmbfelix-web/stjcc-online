@@ -1,28 +1,51 @@
 import { getSql } from "../db";
+import { classifyAccess, type AccessKind } from "../automation/policy";
 import { getSessionUser, type VerifiedUser } from "../auth/verify.server";
 
 export type PortalAccess = {
   user: VerifiedUser;
-  kind: "owner" | "client" | "unassigned";
+  kind: AccessKind;
   onboardingId?: string;
   role?: string;
+  status?: string;
+  billingStatus?: string;
 };
+
+export async function isOwnerUser(user: VerifiedUser): Promise<boolean> {
+  const configuredOwner = process.env.SJCC_OWNER_EMAIL?.trim().toLowerCase();
+  if (configuredOwner && user.email?.toLowerCase() === configuredOwner) return true;
+  const sql = await getSql();
+  const rows = await sql.query<{ user_id: string }>(
+    `select user_id from sjcc_admin_users where user_id = $1 or lower(email) = lower($2) limit 1`,
+    [user.id, user.email ?? ""],
+  );
+  return Boolean(rows[0]);
+}
 
 export async function getPortalAccess(request: Request): Promise<PortalAccess | null> {
   const token = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
   const user = await getSessionUser(token);
   if (!user) return null;
-
-  const ownerEmail = process.env.SJCC_OWNER_EMAIL?.trim().toLowerCase();
-  if (ownerEmail && user.email?.toLowerCase() === ownerEmail) return { user, kind: "owner" };
+  if (await isOwnerUser(user)) return { user, kind: "owner" };
 
   const sql = await getSql();
-  const rows = await sql.query<{ onboarding_id: string; role: string }>(
-    `select onboarding_id, role from client_user_access where user_id = $1`,
+  const rows = await sql.query<{ onboarding_id: string; role: string; status: string; billing_status: string }>(
+    `select a.onboarding_id, a.role, o.status, o.billing_status
+     from client_user_access a
+     join client_onboarding o on o.id = a.onboarding_id
+     where a.user_id = $1`,
     [user.id],
   );
-  if (rows[0]) return { user, kind: "client", onboardingId: rows[0].onboarding_id, role: rows[0].role };
-  return { user, kind: "unassigned" };
+  const row = rows[0];
+  if (!row) return { user, kind: "unassigned" };
+  return {
+    user,
+    kind: classifyAccess({ isOwner: false, onboardingId: row.onboarding_id, status: row.status }),
+    onboardingId: row.onboarding_id,
+    role: row.role,
+    status: row.status,
+    billingStatus: row.billing_status,
+  };
 }
 
 export async function requirePortalAccess(request: Request): Promise<PortalAccess> {

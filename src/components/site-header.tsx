@@ -30,9 +30,14 @@ export function SiteHeader() {
             </a>
           ))}
         </nav>
-        <Button asChild size="sm" variant="outline" className="shrink-0">
-          <Link to="/login">Client sign-in</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild size="sm" variant="outline" className="shrink-0">
+            <Link to="/login">Client sign-in</Link>
+          </Button>
+          <Button asChild size="sm" className="shrink-0">
+            <Link to="/onboarding">Start onboarding</Link>
+          </Button>
+        </div>
       </div>
     </header>
   );
