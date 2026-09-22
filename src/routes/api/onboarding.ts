@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { acceptAgreement, createOnboarding } from "@/lib/portal/store";
 import { getStripe, stripeConfigured } from "@/lib/billing/stripe.server";
 import { resendConfigured, sendOnboardingReceipt } from "@/lib/notifications/resend.server";
+import { getSessionUser } from "@/lib/auth/verify.server";
 
 export const Route = createFileRoute("/api/onboarding")({
   server: {
@@ -38,6 +39,11 @@ export const Route = createFileRoute("/api/onboarding")({
             ipAddress: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim(),
             userAgent: request.headers.get("user-agent") ?? undefined,
           });
+          const user = await getSessionUser(request.headers.get("authorization")?.replace(/^Bearer\s+/i, ""));
+          if (user) {
+            const sql = await (await import("@/lib/db")).getSql();
+            await sql.query(`insert into client_user_access (user_id, onboarding_id) values ($1, $2) on conflict (user_id) do update set onboarding_id = excluded.onboarding_id`, [user.id, onboarding.id]);
+          }
           let checkoutUrl: string | undefined;
           if (stripeConfigured()) {
             const session = await getStripe().checkout.sessions.create({
