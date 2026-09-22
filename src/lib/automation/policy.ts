@@ -136,7 +136,7 @@ export function trackingProfile(services: unknown): TrackingProfile {
 }
 
 export function billingDecision(eventType: string): "activate" | "past_due" | "suspend" | "ignore" {
-  if (eventType === "checkout.session.completed" || eventType === "invoice.paid") return "activate";
+  if (eventType === "checkout.session.completed" || eventType === "invoice.paid" || eventType === "invoice.payment_succeeded") return "activate";
   if (eventType === "invoice.payment_failed") return "past_due";
   if (eventType === "customer.subscription.deleted") return "suspend";
   return "ignore";
