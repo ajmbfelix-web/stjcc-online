@@ -90,6 +90,17 @@ function ClientPortal() {
     await load();
   }
 
+  async function openBilling() {
+    setNotice(null);
+    const response = await fetch("/api/billing/portal", { method: "POST", credentials: "include", headers: authHeaders() });
+    const json = (await response.json()) as { url?: string; error?: string };
+    if (!response.ok || !json.url) {
+      setNotice(json.error ?? "The card update page is not available yet");
+      return;
+    }
+    window.location.href = json.url;
+  }
+
   return (
     <SignInGate fallback={<ClientGate />}>
       <main className="min-h-dvh bg-background">
@@ -120,6 +131,9 @@ function ClientPortal() {
                     ? ` This organization is paying for ${data.onboarding.billedDrivers} seat${data.onboarding.billedDrivers === 1 ? "" : "s"} ($${data.onboarding.billedDrivers * 5}/month).`
                     : ""}
                 </p>
+                <Button type="button" variant="outline" className="mt-4" onClick={() => void openBilling()}>
+                  Update card
+                </Button>
               </div>
               {data.access.billingStatus === "past_due" ? (
                 <section className="rounded-xl border border-warn/40 bg-card p-5 text-sm">

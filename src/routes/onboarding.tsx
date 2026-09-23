@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { Wordmark } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AGREEMENT_ACKNOWLEDGMENTS, AGREEMENT_SECTIONS, AGREEMENT_TITLE, AGREEMENT_VERSION } from "@/lib/agreements/master";
 import { getBearerToken } from "@/lib/auth/client";
 import { pageTitle } from "@/lib/seo";
 
@@ -36,6 +37,8 @@ function Onboarding() {
   const [returnedFromCheckout, setReturnedFromCheckout] = useState(false);
   const [claimCode, setClaimCode] = useState("");
   const [claimMessage, setClaimMessage] = useState<string | null>(null);
+  const [readAgreement, setReadAgreement] = useState(false);
+  const agreementRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -45,8 +48,18 @@ function Onboarding() {
     if (stored) setClaimCode(stored);
   }, []);
 
+  function markRead() {
+    const frame = agreementRef.current;
+    if (!frame) return;
+    if (frame.scrollTop + frame.clientHeight >= frame.scrollHeight - 16) setReadAgreement(true);
+  }
+
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!readAgreement) {
+      setError("Scroll through the agreement before authorizing it.");
+      return;
+    }
     setBusy(true);
     setError(null);
     const form = new FormData(event.currentTarget);
@@ -57,9 +70,13 @@ function Onboarding() {
       contactEmail: String(form.get("contactEmail") ?? ""),
       driverCount: Number(form.get("driverCount") ?? 0),
       services: form.getAll("services"),
+      signerTitle: String(form.get("signerTitle") ?? ""),
+      signatureName: String(form.get("signatureName") ?? ""),
       termsAccepted: form.get("termsAccepted") === "on",
+      esignConsent: form.get("esignConsent") === "on",
       billingAuthorized: form.get("billingAuthorized") === "on",
-      dataProcessingAccepted: form.get("dataProcessingAccepted") === "on",
+      complianceAcknowledged: form.get("complianceAcknowledged") === "on",
+      authorityConfirmed: form.get("authorityConfirmed") === "on",
     };
     try {
       const response = await fetch("/api/onboarding", {
@@ -103,7 +120,7 @@ function Onboarding() {
           <Badge tone="ok">Setup recorded</Badge>
           <h1 className="mt-5 text-4xl">Activation continues on its own.</h1>
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-            Sign in with the contact email and enter this claim code if the account is not already linked. The workspace opens when billing confirms. Nobody has to approve it.
+            The signed agreement was emailed to you and to SJCC. Sign in with the contact email and enter this claim code if the account is not already linked. The workspace opens when billing confirms.
           </p>
           <p className="mt-5 font-mono text-xs text-muted-foreground">Reference {done.id}</p>
           <p className="mt-3 rounded-md border border-border bg-background px-3 py-2 font-mono text-sm">{done.claimToken}</p>
@@ -145,17 +162,17 @@ function Onboarding() {
         <Badge tone="live">Client onboarding</Badge>
         <h1 className="mt-5 max-w-2xl text-5xl">Start compliance without a setup call.</h1>
         <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
-          Organization details, service selection, authorization, and billing are collected here. SJCC activates the workspace when those requirements are met.
+          Organization details, the service agreement, and the first month of testing seats are collected here. The workspace opens when payment confirms.
         </p>
         <form onSubmit={submit} className="mt-10 space-y-8">
           <section className="grid gap-4 rounded-xl border border-border bg-card p-6 sm:grid-cols-2">
             <Field name="organizationName" label="Legal business name" required />
             <Field name="dotNumber" label="DOT number" required />
-            <Field name="contactName" label="Primary contact" required />
-            <Field name="contactEmail" label="Contact email" type="email" required />
+            <Field name="contactName" label="Authorized representative" required />
+            <Field name="contactEmail" label="Email address" type="email" required />
             <Field name="driverCount" label="Drivers who need testing" type="number" min="1" required />
             <p className="text-sm text-muted-foreground sm:col-span-2">
-              $5 per driver per month. Stripe collects the first month before the portal opens. A driver added later, beyond these seats, is charged $5 that day.
+              $5 per driver per month, collected before the portal opens. A driver added later, beyond these seats, is charged $5 that day.
             </p>
           </section>
           <section className="rounded-xl border border-border bg-card p-6">
@@ -170,26 +187,56 @@ function Onboarding() {
             </div>
           </section>
           <section className="rounded-xl border border-border bg-card p-6">
-            <h2 className="text-2xl">Authorization</h2>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              This records the operational authorization to run the selected services, send notices, and bill through Stripe. A later counsel-approved agreement supersedes it when published.
-            </p>
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <h2 className="text-2xl">Agreement</h2>
+                <p className="mt-2 text-sm text-muted-foreground">Version {AGREEMENT_VERSION}. Scroll to the end, then authorize.</p>
+              </div>
+              <Badge tone={readAgreement ? "ok" : "idle"}>{readAgreement ? "Read" : "Scroll"}</Badge>
+            </div>
+            <div
+              ref={agreementRef}
+              onScroll={markRead}
+              className="mt-4 h-96 overflow-y-auto rounded-md border border-border bg-background px-5 py-5"
+            >
+              <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">St. Joseph Compliance Company</p>
+              <h3 className="mt-2 text-xl">{AGREEMENT_TITLE}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                Effective on the date this is signed. The signer’s name, title, email, IP address, time, and agreement version are stored with the signature. A signed PDF is emailed to the company and to SJCC.
+              </p>
+              <div className="mt-6 space-y-6">
+                {AGREEMENT_SECTIONS.map((section) => (
+                  <article key={section.heading}>
+                    <h4 className="text-base">{section.heading}</h4>
+                    {section.paragraphs.map((paragraph) => (
+                      <p key={paragraph} className="mt-2 text-sm leading-relaxed text-muted-foreground">{paragraph}</p>
+                    ))}
+                    {section.bullets ? (
+                      <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-muted-foreground">
+                        {section.bullets.map((item) => <li key={item}>{item}</li>)}
+                      </ul>
+                    ) : null}
+                  </article>
+                ))}
+              </div>
+            </div>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <Field name="signerTitle" label="Title" required />
+              <Field name="signatureName" label="Electronic signature (type your full name)" required />
+            </div>
             <div className="mt-5 space-y-4">
-              {[
-                ["termsAccepted", "I agree to the SJCC terms of service."],
-                ["billingAuthorized", "I authorize $5 per testing driver per month, collected up front through Stripe."],
-                ["dataProcessingAccepted", "I authorize SJCC to process compliance information for these services."],
-              ].map(([name, label]) => (
-                <label key={name} className="flex items-start gap-3 text-sm">
-                  <input required type="checkbox" name={name} className="mt-0.5 size-4 accent-[var(--color-primary)]" />
-                  <span>{label}</span>
+              {AGREEMENT_ACKNOWLEDGMENTS.map((item) => (
+                <label key={item.name} className="flex items-start gap-3 text-sm">
+                  <input required disabled={!readAgreement} type="checkbox" name={item.name} className="mt-0.5 size-4 accent-[var(--color-primary)] disabled:opacity-40" />
+                  <span className={readAgreement ? "" : "text-muted-foreground"}>{item.label}</span>
                 </label>
               ))}
             </div>
+            {readAgreement ? null : <p className="mt-4 text-sm text-muted-foreground">The acknowledgments stay locked until the agreement has been scrolled to the end.</p>}
           </section>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
-          <Button type="submit" disabled={busy}>
-            {busy ? "Saving setup..." : "Submit onboarding"}
+          <Button type="submit" disabled={busy || !readAgreement}>
+            {busy ? "Saving setup..." : "Sign and continue to payment"}
             <ArrowRight className="size-4" />
           </Button>
         </form>

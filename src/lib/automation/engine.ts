@@ -561,7 +561,7 @@ export async function applyBillingEvent(
     );
     await sql.query(
       `insert into client_user_access (user_id, onboarding_id, role)
-       select id, $1, 'client_admin' from "user" where lower(email) = lower($2) and "emailVerified" = true
+       select id, $1, 'client_admin' from "user" where lower(email) = lower($2)
        on conflict (user_id) do nothing`,
       [input.onboardingId, org.contactEmail],
     );

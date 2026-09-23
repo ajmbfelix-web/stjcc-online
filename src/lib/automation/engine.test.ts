@@ -113,7 +113,7 @@ describe("automation engine", () => {
     const status = await sql.query<{ status: string }>(`select status from compliance_drivers where id = 'ord_lab'`);
     assert.equal(status[0]?.status, "CLEARED");
 
-    await sql.query(`insert into "user" (id, name, email, "emailVerified") values ('user_cam', 'Cam', 'cam@west.test', true)`);
+    await sql.query(`insert into "user" (id, name, email, "emailVerified") values ('user_cam', 'Cam', 'cam@west.test', false)`);
     const decision = await applyBillingEvent(sql, { eventType: "invoice.paid", onboardingId: "onb_pending", customerId: "cus_pending" });
     assert.equal(decision, "activate");
     const org = await sql.query<{ status: string; stripe_customer_id: string }>(

@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
+import { AGREEMENT_TITLE, AGREEMENT_VERSION, AGREEMENT_VERSION_ID, agreementBlocker, masterAgreementBody, type AgreementAcceptance } from "../agreements/master";
 import { getSql } from "../db";
 
 export type OnboardingInput = {
@@ -18,14 +19,10 @@ export type OnboardingRecord = OnboardingInput & {
   createdAt: string;
 };
 
-export type AgreementAcceptanceInput = {
+export type AgreementAcceptanceInput = AgreementAcceptance & {
   onboardingId: string;
-  agreementVersionId: string;
   signerName: string;
   signerEmail: string;
-  termsAccepted: boolean;
-  billingAuthorized: boolean;
-  dataProcessingAccepted: boolean;
   ipAddress?: string;
   userAgent?: string;
 };
@@ -55,21 +52,51 @@ export async function createOnboarding(input: OnboardingInput): Promise<Onboardi
   return rows[0];
 }
 
-export async function acceptAgreement(input: AgreementAcceptanceInput): Promise<void> {
-  if (!input.termsAccepted || !input.billingAuthorized || !input.dataProcessingAccepted) {
-    throw new Error("All agreement confirmations are required");
-  }
+export async function ensureAgreementVersion(): Promise<void> {
   const sql = await getSql();
+  const body = masterAgreementBody();
+  await sql.query(
+    `insert into compliance_agreement_versions (id, version, title, body, body_hash, active)
+     values ($1, $2, $3, $4, $5, true)
+     on conflict (id) do update
+       set version = excluded.version, title = excluded.title, body = excluded.body,
+           body_hash = excluded.body_hash, active = true`,
+    [AGREEMENT_VERSION_ID, AGREEMENT_VERSION, AGREEMENT_TITLE, body, agreementHash(body)],
+  );
+  await sql.query(`update compliance_agreement_versions set active = false where id <> $1`, [AGREEMENT_VERSION_ID]);
+}
+
+export async function acceptAgreement(input: AgreementAcceptanceInput): Promise<void> {
+  const blocker = agreementBlocker(input);
+  if (blocker) throw new Error(blocker);
+  const sql = await getSql();
+  await ensureAgreementVersion();
   await sql.query(
     `insert into compliance_agreement_acceptances
-      (id, onboarding_id, agreement_version_id, signer_name, signer_email,
-       terms_accepted, billing_authorized, data_processing_accepted, ip_address, user_agent)
-     values ($1, $2, $3, $4, lower($5), $6, $7, $8, $9, $10)
-     on conflict (onboarding_id, agreement_version_id) do nothing`,
-    [randomUUID(), input.onboardingId, input.agreementVersionId, input.signerName.trim(), input.signerEmail.trim(), input.termsAccepted, input.billingAuthorized, input.dataProcessingAccepted, input.ipAddress ?? null, input.userAgent ?? null],
+      (id, onboarding_id, agreement_version_id, signer_name, signer_email, signer_title, signature_name,
+       terms_accepted, billing_authorized, data_processing_accepted, esign_consent, compliance_acknowledged,
+       authority_confirmed, ip_address, user_agent)
+     values ($1, $2, $3, $4, lower($5), $6, $7, true, true, true, true, true, true, $8, $9)
+     on conflict (onboarding_id, agreement_version_id) do update
+       set signer_name = excluded.signer_name, signer_email = excluded.signer_email,
+           signer_title = excluded.signer_title, signature_name = excluded.signature_name,
+           terms_accepted = true, billing_authorized = true, data_processing_accepted = true,
+           esign_consent = true, compliance_acknowledged = true, authority_confirmed = true,
+           ip_address = excluded.ip_address, user_agent = excluded.user_agent, accepted_at = now()`,
+    [
+      randomUUID(),
+      input.onboardingId,
+      AGREEMENT_VERSION_ID,
+      input.signerName.trim(),
+      input.signerEmail.trim(),
+      input.signerTitle.trim(),
+      input.signatureName.trim(),
+      input.ipAddress ?? null,
+      input.userAgent ?? null,
+    ],
   );
   await sql.query(
-    `update client_onboarding set status = 'payment_pending', updated_at = now() where id = $1`,
+    `update client_onboarding set status = 'payment_pending', updated_at = now() where id = $1 and status = 'in_progress'`,
     [input.onboardingId],
   );
 }

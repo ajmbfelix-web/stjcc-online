@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { ownerInbox } from "../automation/owner.ts";
 import { operationalLetter } from "./letters.ts";
 
 let resendClient: Resend | null = null;
@@ -28,4 +29,28 @@ export async function sendOnboardingReceipt(to: string, onboardingId: string): P
     "SJCC onboarding received",
     `Your organization is recorded. Testing seats are $5 per driver per month. Stripe collects the first month before the portal opens. Adding a driver beyond the seats you already paid charges $5 that day.\n\nReference: ${onboardingId}\nSign in and use the claim code from the setup screen if this account is not linked yet.`,
   );
+}
+
+export async function sendSignedAgreement(input: {
+  signerEmail: string;
+  organizationName: string;
+  pdf: Uint8Array;
+}): Promise<void> {
+  const resend = getResend();
+  const from = process.env.RESEND_FROM_EMAIL?.trim();
+  if (!from) throw new Error("RESEND_FROM_EMAIL is not configured");
+  const filename = "SJCC-Master-Service-Agreement.pdf";
+  const content = Buffer.from(input.pdf);
+  const recipients = [...new Set([ownerInbox(), input.signerEmail.trim().toLowerCase()])];
+  for (const to of recipients) {
+    const copy = to === ownerInbox() ? "A client signed the Master Service Agreement. The signed PDF is attached." : `${input.organizationName} signed the Master Service Agreement. Your signed copy is attached. SJCC received the same PDF.`;
+    const result = await resend.emails.send({
+      from,
+      to,
+      subject: `Signed agreement — ${input.organizationName}`,
+      text: operationalLetter(`${copy}\n\nCompany: ${input.organizationName}\nSigner: ${input.signerEmail}`),
+      attachments: [{ filename, content }],
+    });
+    if (result.error) throw new Error(result.error.message);
+  }
 }
