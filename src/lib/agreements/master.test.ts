@@ -15,7 +15,7 @@ const signed = {
 describe("master agreement", () => {
   it("keeps the monthly seat price and the charge authorization in the contract", () => {
     const body = masterAgreementBody();
-    assert.match(body, /\$5\.00\) per driver who needs testing/);
+    assert.match(body, /\$7\.00\) per driver who needs testing/);
     assert.match(body, /payment method on file/);
     assert.match(body, /Michigan/);
   });

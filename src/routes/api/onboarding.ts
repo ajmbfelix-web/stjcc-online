@@ -121,7 +121,7 @@ export const Route = createFileRoute("/api/onboarding")({
               cancel_url: `${origin}/onboarding?cancelled=1`,
               metadata: { onboardingId: onboarding.id, driverCount: String(driverCount) },
               subscription_data: {
-                description: "SJCC compliance — $5 per testing driver per month, collected up front",
+                description: "SJCC compliance — $7 per testing driver per month, collected up front",
                 metadata: { onboardingId: onboarding.id },
               },
             });

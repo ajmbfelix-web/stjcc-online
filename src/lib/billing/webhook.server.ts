@@ -3,9 +3,11 @@ import { getSql } from "../db.ts";
 import { recordStripeEvent } from "../portal/store.ts";
 import { rememberSubscription } from "./seats.server.ts";
 import { getStripe } from "./stripe.server.ts";
+import { markServiceOrderPaid } from "../orders/book.ts";
+import { dispatchPaidOrders } from "../orders/charge.server.ts";
 
 type StripeObject = {
-  metadata?: { onboardingId?: string };
+  metadata?: { onboardingId?: string; serviceOrderId?: string };
   customer?: string | { id?: string };
   subscription?: string | { id?: string };
   parent?: { subscription_details?: { metadata?: { onboardingId?: string }; subscription?: string } };
@@ -66,6 +68,12 @@ export async function handleStripeWebhook(request: Request): Promise<Response> {
     } catch {
       // The billing state already changed. The next paid invoice can store the subscription id.
     }
+  }
+  const serviceOrderId = object.metadata?.serviceOrderId;
+  const checkoutPaid = event.type === "checkout.session.completed" && (event.data.object as { payment_status?: string }).payment_status === "paid";
+  if (serviceOrderId && (checkoutPaid || event.type === "invoice.paid" || event.type === "invoice.payment_succeeded")) {
+    await markServiceOrderPaid(sql, { id: serviceOrderId });
+    await dispatchPaidOrders(sql);
   }
   return Response.json({ received: true, decision });
 }

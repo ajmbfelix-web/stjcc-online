@@ -1,4 +1,4 @@
-import { money } from "../billing/seats.ts";
+import { DRIVER_MONTHLY_CENTS, money } from "../billing/catalog.ts";
 
 export function operationalLetter(body: string): string {
   return `${body.trim()}\n\n—\nSt. Joseph Compliance Company\nThis message was sent automatically. Reply if a driver, date, or charge looks wrong.`;
@@ -12,7 +12,7 @@ export function seatChangeLetter(input: {
   billedDrivers: number;
   added: number;
 }): string {
-  const monthly = money(input.billedDrivers * 500);
+  const monthly = money(input.billedDrivers * DRIVER_MONTHLY_CENTS);
   const driverLine = `Driver: ${input.driverName}\nCDL: ${input.cdl}`;
   if (input.added > 0 && input.chargedCents > 0) {
     return [
@@ -20,7 +20,7 @@ export function seatChangeLetter(input: {
       "",
       driverLine,
       `Charged today: ${money(input.chargedCents)}`,
-      `Monthly testing seats: ${input.billedDrivers} × $5.00 = ${monthly}`,
+      `Monthly testing seats: ${input.billedDrivers} × ${money(DRIVER_MONTHLY_CENTS)} = ${monthly}`,
       "",
       "The new seat is paid up front. It is not added unless this charge succeeds. The monthly amount is collected at the start of each billing period.",
     ].join("\n");
@@ -31,7 +31,7 @@ export function seatChangeLetter(input: {
       "",
       driverLine,
       `Charged today: $0.00`,
-      `Monthly testing seats remain ${input.billedDrivers} × $5.00 = ${monthly}.`,
+      `Monthly testing seats remain ${input.billedDrivers} × ${money(DRIVER_MONTHLY_CENTS)} = ${monthly}.`,
     ].join("\n");
   }
   return [
@@ -39,6 +39,6 @@ export function seatChangeLetter(input: {
     "",
     driverLine,
     `This month was already paid, so nothing was refunded.`,
-    `Next month's testing seats: ${input.billedDrivers} × $5.00 = ${monthly}.`,
+    `Next month's testing seats: ${input.billedDrivers} × ${money(DRIVER_MONTHLY_CENTS)} = ${monthly}.`,
   ].join("\n");
 }

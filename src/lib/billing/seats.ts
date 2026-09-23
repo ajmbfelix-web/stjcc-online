@@ -1,4 +1,5 @@
-export const DRIVER_MONTHLY_CENTS = 500;
+export { DRIVER_MONTHLY_CENTS, money } from "./catalog.ts";
+import { DRIVER_MONTHLY_CENTS } from "./catalog.ts";
 
 export function seatDelta(input: { billed: number; before: number; after: number }): {
   nextBilled: number;
@@ -16,8 +17,4 @@ export function seatDelta(input: { billed: number; before: number; after: number
     return { nextBilled: Math.max(0, billed + delta), chargeCents: 0, added: delta };
   }
   return { nextBilled: billed, chargeCents: 0, added: delta };
-}
-
-export function money(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
 }

@@ -210,7 +210,7 @@ export function activationChecklist(input: {
       label: "Billing",
       state: billingDone ? "complete" : input.billingConfigured ? "waiting" : "blocked",
       detail: billingDone
-        ? "The $5 per driver monthly seat is on file and was collected up front."
+        ? "The $7 per testing driver monthly seat is on file and was collected up front."
         : input.billingConfigured
           ? "Finish Stripe checkout. Activation happens when payment is confirmed."
           : "SJCC billing is not configured yet. No one can activate this organization until that integration is restored.",
@@ -440,14 +440,21 @@ export function collectionFindings(input: {
   today: string;
   recipient?: string;
   testLabel: string;
+  payment?: "unpaid" | "held" | "ready";
 }): Finding[] {
   const age = ageDays(input.today, input.openedOn);
   const who = input.cdl ? `${input.driverName} (${input.cdl})` : input.driverName;
   const company = input.organizationName ? `${input.organizationName}: ` : "";
+  const payment = input.payment ?? "ready";
   const connected = input.laboratoryConnected !== false;
-  const description = connected
-    ? `${company}${who} needs a ${input.testLabel}. Reference ${input.orderId}. Use the collection site on the laboratory order. SJCC records the result when it comes back.`
-    : `${company}${who} was selected for a ${input.testLabel}. Reference ${input.orderId}. The laboratory connection is not live, so SJCC operations has this order. Do not send the driver to a clinic until a follow-up email names the collection site.`;
+  const description =
+    payment === "unpaid"
+      ? `${company}${who} was selected for a ${input.testLabel}. Reference ${input.orderId}. The card has not been charged, so the test is not ordered and the driver should not go to a clinic.`
+      : payment === "held"
+        ? `${company}${who} is paid for a ${input.testLabel}. Reference ${input.orderId}. The collection site is not assigned until the laboratory accepts the order.`
+        : connected
+          ? `${company}${who} needs a ${input.testLabel}. Reference ${input.orderId}. Use the collection site on the laboratory order. SJCC records the result when it comes back.`
+          : `${company}${who} was selected for a ${input.testLabel}. Reference ${input.orderId}. The laboratory connection is not live, so SJCC operations has this order. Do not send the driver to a clinic until a follow-up email names the collection site.`;
   const findings: Finding[] = [
     clientNotice({
       dedupeKey: `client:collection:${input.orderId}`,
@@ -460,18 +467,28 @@ export function collectionFindings(input: {
       template: "collection_due",
     }),
   ];
-  if (!connected) {
+  if (payment === "unpaid") {
     findings.push({
-      dedupeKey: `owner:lab_order:${input.orderId}`,
+      dedupeKey: `owner:unpaid_test:${input.orderId}`,
       audience: "owner",
       severity: "high",
+      source: "billing",
+      rosterId: input.rosterId ?? undefined,
+      title: `Charge ${input.driverName} before the test is ordered`,
+      description: `${company}${who} needs a ${input.testLabel}. Reference ${input.orderId}. Nothing goes to the laboratory until this charge clears.`,
+    });
+  } else if (payment === "held" || !connected) {
+    findings.push({
+      dedupeKey: `owner:paid_not_sent:${input.orderId}`,
+      audience: "owner",
+      severity: "normal",
       source: "random",
       rosterId: input.rosterId ?? undefined,
-      title: `Place the laboratory order for ${input.driverName}`,
-      description: `${company}${who} needs a ${input.testLabel}. Reference ${input.orderId}. Opened ${input.openedOn}. The laboratory API is not connected, so this was not sent to Labcorp. Place it only after the client's testing seat is paid.`,
+      title: `Paid test is waiting on the laboratory for ${input.driverName}`,
+      description: `${company}${who} is paid for a ${input.testLabel}. Reference ${input.orderId}. The money stays with SJCC until the laboratory connection accepts the order. Do not send the driver to a clinic yet.`,
     });
   }
-  if (age >= 7) {
+  if (age >= 7 && payment === "ready") {
     findings.push({
       dedupeKey: `owner:collection:${input.orderId}`,
       audience: "owner",

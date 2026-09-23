@@ -31,7 +31,7 @@ export async function assertDriverPrice(): Promise<void> {
   if (!priceId) throw new Error("SJCC billing price is not configured");
   const price = await getStripe().prices.retrieve(priceId);
   if (price.unit_amount !== DRIVER_MONTHLY_CENTS || price.currency !== "usd" || price.recurring?.interval !== "month") {
-    throw new Error("SJCC billing must stay at $5 per driver per month.");
+    throw new Error("SJCC billing must stay at $7 per testing driver per month.");
   }
 }
 
@@ -119,7 +119,7 @@ export async function applySeatChange(
         org.customer,
         input.accountId,
         plan.chargeCents,
-        `SJCC testing seat for ${input.driverName} — $5.00 paid up front`,
+        `SJCC testing seat for ${input.driverName} — $7.00 paid up front`,
       );
     }
     if (org.subscription && org.item && plan.nextBilled !== org.billed) {
@@ -134,8 +134,8 @@ export async function applySeatChange(
     await queueNotice(sql, input.accountId, {
       recipient: ownerInbox(),
       template: "owner_seat_unbilled",
-      subject: `Could not collect $5 for ${input.driverName}`,
-      body: `${org.organizationName} added ${input.driverName} (${input.cdl}), but Stripe is not configured in this environment. The seat was recorded and the $5 charge was not collected.`,
+      subject: `Could not collect $7 for ${input.driverName}`,
+      body: `${org.organizationName} added ${input.driverName} (${input.cdl}), but Stripe is not configured in this environment. The seat was recorded and the $7 charge was not collected.`,
       dedupeKey: `notify:owner:seat_unbilled:${input.accountId}:${input.cdl}`,
     });
   }

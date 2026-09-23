@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { DRIVER_MONTHLY_CENTS, money } from "../billing/catalog.ts";
 import { ownerInbox } from "../automation/owner.ts";
 import { operationalLetter } from "./letters.ts";
 
@@ -27,7 +28,7 @@ export async function sendOnboardingReceipt(to: string, onboardingId: string): P
   await sendOperationalEmail(
     to,
     "SJCC onboarding received",
-    `Your organization is recorded. Testing seats are $5 per driver per month. Stripe collects the first month before the portal opens. Adding a driver beyond the seats you already paid charges $5 that day.\n\nReference: ${onboardingId}\nSign in and use the claim code from the setup screen if this account is not linked yet.`,
+    `Your organization is recorded. Testing seats are ${money(DRIVER_MONTHLY_CENTS)} per driver per month. Stripe collects the first month before the portal opens. Adding a driver beyond the seats you already paid charges ${money(DRIVER_MONTHLY_CENTS)} that day.\n\nReference: ${onboardingId}\nSign in and use the claim code from the setup screen if this account is not linked yet.`,
   );
 }
 

@@ -172,7 +172,7 @@ function Onboarding() {
             <Field name="contactEmail" label="Email address" type="email" required />
             <Field name="driverCount" label="Drivers who need testing" type="number" min="1" required />
             <p className="text-sm text-muted-foreground sm:col-span-2">
-              $5 per driver per month, collected before the portal opens. A driver added later, beyond these seats, is charged $5 that day.
+              $7 per driver per month, collected before the portal opens. A driver added later, beyond these seats, is charged $7 that day. One-off tests are charged before they are ordered: DOT drug $65, breath alcohol $55, both $110, MVR $15.
             </p>
           </section>
           <section className="rounded-xl border border-border bg-card p-6">

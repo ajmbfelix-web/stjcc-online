@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/site-header";
 import { ProductShowcase } from "@/components/product-showcase";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CATALOG, DRIVER_MONTHLY_CENTS, money } from "@/lib/billing/catalog";
 import { canonical, DEFAULT_DESCRIPTION, pageTitle } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
@@ -182,6 +183,38 @@ function Home() {
         </section>
 
         <ProductShowcase />
+
+        <section id="pricing" className="border-t border-border">
+          <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">Pricing</p>
+            <h2 className="mt-3 max-w-2xl text-3xl font-medium tracking-tight">Pay before the test is ordered.</h2>
+            <p className="mt-3 max-w-2xl text-muted-foreground">
+              A full program is {money(DRIVER_MONTHLY_CENTS)} per testing driver each month, collected up front. One-off and staffing tests are a separate charge, taken before anything is sent to a clinic.
+            </p>
+            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              <article className="rounded-xl border border-primary bg-card p-5 lg:col-span-1">
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Program</p>
+                <p className="mt-3 text-3xl tabular-nums">{money(DRIVER_MONTHLY_CENTS)}</p>
+                <p className="mt-2 text-sm text-muted-foreground">Per testing driver, each month. Random pool included.</p>
+              </article>
+              {Object.values(CATALOG).map((item) => (
+                <article key={item.sku} className="rounded-xl border border-border bg-card p-5">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">{item.label}</p>
+                  <p className="mt-3 text-3xl tabular-nums">{money(item.cents).replace(".00", "")}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">Charged before the order.</p>
+                </article>
+              ))}
+            </div>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button asChild>
+                <Link to="/onboarding">Start a fleet program<ArrowRight className="size-4" /></Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/screen">Order one test</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
 
         <section id="faq" className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
           <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">FAQ</p>

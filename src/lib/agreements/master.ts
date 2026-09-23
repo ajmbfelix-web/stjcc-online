@@ -1,5 +1,5 @@
-export const AGREEMENT_VERSION = "2026-09-msa";
-export const AGREEMENT_VERSION_ID = "sjcc-msa-2026-09";
+export const AGREEMENT_VERSION = "2026-09-22";
+export const AGREEMENT_VERSION_ID = "sjcc-msa-2026-09-22";
 export const AGREEMENT_TITLE = "Master Service Agreement, Electronic Consent, and Payment Authorization";
 
 export type AgreementSection = {
@@ -70,8 +70,8 @@ export const AGREEMENT_SECTIONS: AgreementSection[] = [
     heading: "6. Fees and payment",
     paragraphs: [
       "Client agrees to pay the fees for services requested or provided. Fees may include monthly service fees, consortium membership, random testing, drug testing, alcohol testing, background screening, MVR, Clearinghouse, collection-site, administrative, setup, and other service charges.",
-      "The current monthly service fee is five U.S. dollars ($5.00) per driver who needs testing, billed monthly in advance. Stripe collects the first month before the portal opens. When Client adds a testing driver beyond the seats already paid, $5.00 for that seat is charged that day. Removing a driver does not refund the month already paid. The monthly amount then changes at the next billing period.",
-      "One-off tests and vendor charges, including random, pre-employment, post-accident, reasonable-suspicion, return-to-duty, and follow-up tests, plus screening, MVR, and Clearinghouse charges, are charged to the payment method on file before the order is placed, or immediately when the cost is incurred. SJCC does not advance those costs. A one-off amount follows the vendor charge for that service unless SJCC has published a fixed rate for it. Fees may be updated upon prior notice.",
+      "The current monthly service fee is seven U.S. dollars ($7.00) per driver who needs testing, billed monthly in advance. Stripe collects the first month before the portal opens. When Client adds a testing driver beyond the seats already paid, $7.00 for that seat is charged that day. Removing a driver does not refund the month already paid. The monthly amount then changes at the next billing period.",
+      "One-off tests and vendor charges, including random, pre-employment, post-accident, reasonable-suspicion, return-to-duty, and follow-up tests, plus screening, MVR, and Clearinghouse charges, are charged to the payment method on file before the order is placed. SJCC does not advance those costs. Published one-off rates are $65.00 for a DOT drug test, $55.00 for a DOT breath alcohol test, $110.00 for a combined drug and alcohol test, and $15.00 for a motor vehicle record, unless a later notice states a different published rate. Fees may be updated upon prior notice.",
     ],
   },
   {
@@ -81,7 +81,7 @@ export const AGREEMENT_SECTIONS: AgreementSection[] = [
       "If a payment fails, SJCC may retry it, suspend services, and restrict account access. Outstanding balances stay immediately due. This authorization lasts until services end and every outstanding balance is paid.",
     ],
     bullets: [
-      "The recurring $5.00 per testing driver per month, collected up front",
+      "The recurring $7.00 per testing driver per month, collected up front",
       "Random drug and alcohol testing events",
       "Post-accident, reasonable-suspicion, return-to-duty, follow-up, and pre-employment testing",
       "Background screening, MVR, Clearinghouse, regulatory, collection-site, and other third-party charges incurred for Client",
@@ -136,7 +136,7 @@ export const AGREEMENT_SECTIONS: AgreementSection[] = [
 export const AGREEMENT_ACKNOWLEDGMENTS = [
   { name: "termsAccepted", label: "I have read and agree to this Master Service Agreement." },
   { name: "esignConsent", label: "I consent to electronic records and electronic signatures." },
-  { name: "billingAuthorized", label: "I authorize SJCC to charge the payment method on file for the recurring $5.00 per testing driver per month, collected up front, and for one-off tests, random testing events, third-party charges, and other authorized fees described in this Agreement." },
+  { name: "billingAuthorized", label: "I authorize SJCC to charge the payment method on file for the recurring $7.00 per testing driver per month, collected up front, and for one-off tests, random testing events, third-party charges, and other authorized fees described in this Agreement." },
   { name: "complianceAcknowledged", label: "I understand that regulatory compliance remains my company's responsibility." },
   { name: "authorityConfirmed", label: "I represent that I am authorized to enter into this Agreement on behalf of the company." },
 ] as const;

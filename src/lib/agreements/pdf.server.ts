@@ -87,7 +87,7 @@ export async function renderSignedAgreement(input: SignedAgreement): Promise<Uin
   ];
   for (const row of rows) write(row, { gap: 4 });
   y -= 8;
-  write("The signer checked every acknowledgment, including consent to electronic records and authorization to charge the payment method on file for the recurring $5.00 per testing driver per month and for one-off tests and other authorized fees.", { gap: 8 });
+  write("The signer checked every acknowledgment, including consent to electronic records and authorization to charge the payment method on file for the recurring $7.00 per testing driver per month and for one-off tests and other authorized fees.", { gap: 8 });
 
   return pdf.save();
 }

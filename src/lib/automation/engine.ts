@@ -22,6 +22,7 @@ import {
   billingDecision,
 } from "./policy.ts";
 import { labConfigured } from "../vendors/adapter.ts";
+import { dispatchPaidOrders, openAndCollect } from "../orders/charge.server.ts";
 import { ownerInbox } from "./owner.ts";
 import { hashClaimToken } from "./tokens.ts";
 
@@ -454,13 +455,30 @@ export async function runAutomationWith(sql: Sql, options: RunOptions): Promise<
   for (const order of pending) {
     const org = orgById.get(order.accountId);
     const label =
-      order.orderReason === "random_alcohol"
+      order.orderReason === "random_alcohol" || order.orderReason === "alcohol"
         ? "Random alcohol test"
         : order.orderReason === "pre_employment"
           ? "Pre-employment drug test"
-          : order.orderReason === "random_drug"
+          : order.orderReason === "random_drug" || order.orderReason === "drug"
             ? "Random drug test"
             : "Drug test";
+    const sku = label === "Random alcohol test" ? "dot_alcohol" : "dot_drug";
+    let payment: "unpaid" | "held" | "ready" = "unpaid";
+    try {
+      payment = await openAndCollect(sql, {
+        id: `svc_${order.id}`,
+        onboardingId: order.accountId,
+        channel: "client",
+        companyName: org?.organizationName ?? "Client",
+        resultEmail: org?.contactEmail ?? ownerInbox(),
+        candidateName: order.name,
+        complianceOrderId: order.id,
+        sku,
+        reason: order.orderReason,
+      });
+    } catch {
+      payment = "unpaid";
+    }
     ensure(order.accountId).push(
       ...collectionFindings({
         orderId: order.id,
@@ -473,6 +491,7 @@ export async function runAutomationWith(sql: Sql, options: RunOptions): Promise<
         today,
         recipient: org?.contactEmail,
         testLabel: label,
+        payment,
       }),
     );
   }
@@ -483,6 +502,7 @@ export async function runAutomationWith(sql: Sql, options: RunOptions): Promise<
   }
 
   await deliverPending(sql, summary);
+  await dispatchPaidOrders(sql);
   const open = await sql.query<{ count: number }>(
     `select count(*)::int as count from compliance_exceptions where resolved = false and audience = 'owner'`,
   );
@@ -527,6 +547,22 @@ export async function syncLabStatus(
       `client:collection:${input.driverId}`,
       `owner:collection:${input.driverId}`,
     ]);
+  }
+  if (decision.status === "CLEARED") {
+    await sql.query(
+      `update service_orders
+       set status = 'result', result_summary = coalesce(result_summary, 'Negative result recorded by the laboratory.')
+       where compliance_order_id = $1 and status in ('sent', 'dispatch_pending', 'paid')`,
+      [input.driverId],
+    );
+  }
+  if (decision.status === "EXCEPTION") {
+    await sql.query(
+      `update service_orders
+       set status = 'exception', clearinghouse = 'awaiting_owner'
+       where compliance_order_id = $1 and clearinghouse <> 'recorded'`,
+      [input.driverId],
+    );
   }
   return { status: decision.status, conflict: false };
 }

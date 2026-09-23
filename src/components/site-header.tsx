@@ -31,6 +31,9 @@ export function SiteHeader() {
           ))}
         </nav>
         <div className="flex items-center gap-2">
+          <Button asChild size="sm" variant="ghost" className="hidden shrink-0 sm:inline-flex">
+            <Link to="/screen">Order a test</Link>
+          </Button>
           <Button asChild size="sm" variant="outline" className="shrink-0">
             <Link to="/login">Client sign-in</Link>
           </Button>
