@@ -3,6 +3,7 @@ import { bookSnapshot } from "../billing/ledger.ts";
 import { dailyBrief, type BriefOrder, type DailyBrief } from "../billing/brief.ts";
 import type { BookSnapshot } from "../billing/ledger.ts";
 import { quarterOf, yearKey } from "../automation/policy.ts";
+import { companyPace, paceRollup, type CompanyPace } from "../automation/pools.ts";
 import type { Sql } from "../db.ts";
 
 export type DeskOrder = BriefOrder & {
@@ -33,7 +34,8 @@ export type OwnerDesk = {
   book: BookSnapshot;
   brief: DailyBrief;
   quarter: number;
-  pace: { drivers: number; drugExpected: number; alcoholExpected: number; drugDraws: number; alcoholDraws: number };
+  pace: { behind: number; withPool: number };
+  companyPace: CompanyPace[];
   orders: DeskOrder[];
   clients: DeskClient[];
   recentClients: Array<{ organizationName: string; createdAt: string }>;
@@ -42,9 +44,19 @@ export type OwnerDesk = {
 
 const WEEK = `(date_trunc('week', now() at time zone 'utc') at time zone 'utc')`;
 
+function readServices(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  try {
+    return JSON.parse(value) as unknown;
+  } catch {
+    return [];
+  }
+}
+
 export async function loadOwnerDesk(sql: Sql, now = new Date()): Promise<OwnerDesk> {
   const quarter = quarterOf(now);
-  const [orders, seats, clients, freshClients, freshDrivers, poolRows, drawRows] = await Promise.all([
+  const year = `${yearKey(now)}-Q%`;
+  const [orders, seats, clients, freshClients, freshDrivers, poolRows, drawRows, orgRows, poolByAccount, drawsByAccount] = await Promise.all([
     sql.query<DeskOrder>(
       `select id, status, amount_cents as "amountCents", estimated_cost_cents as "estimatedCostCents",
               paid_at as "paidAt", channel, company_name as "companyName", candidate_name as "candidateName",
@@ -86,10 +98,52 @@ export async function loadOwnerDesk(sql: Sql, now = new Date()): Promise<OwnerDe
        from random_selections where period like $1`,
       [`${yearKey(now)}-Q%`],
     ),
+    sql.query<{ id: string; organizationName: string; services: unknown; poolMode: string; status: string }>(
+      `select id, organization_name as "organizationName", services, pool_mode as "poolMode", status
+       from client_onboarding
+       where status in ('active', 'past_due')`,
+    ),
+    sql.query<{ accountId: string; pool: number }>(
+      `select account_id as "accountId", count(*)::int as pool
+       from driver_roster
+       where employment_status = 'active' and in_random_pool = true and needs_testing = true
+       group by account_id`,
+    ),
+    sql.query<{ accountId: string; testKind: string; drawn: number }>(
+      `select account_id as "accountId", test_kind as "testKind", count(*)::int as drawn
+       from random_selections
+       where period like $1
+       group by account_id, test_kind`,
+      [year],
+    ),
   ]);
   const seat = seats[0] ?? { seats: 0, pastDue: 0 };
   const counts = poolRows[0] ?? { pool: 0, added: 0, clients: 0 };
   const draws = drawRows[0] ?? { drug: 0, alcohol: 0 };
+  const poolSize = new Map(poolByAccount.map((row) => [row.accountId, row.pool]));
+  const drawn = new Map<string, { drug: number; alcohol: number }>();
+  for (const row of drawsByAccount) {
+    const current = drawn.get(row.accountId) ?? { drug: 0, alcohol: 0 };
+    if (row.testKind === "alcohol") current.alcohol = row.drawn;
+    else current.drug = row.drawn;
+    drawn.set(row.accountId, current);
+  }
+  const companies = orgRows
+    .map((org) =>
+      companyPace({
+        id: org.id,
+        organizationName: org.organizationName,
+        poolMode: org.poolMode,
+        pool: poolSize.get(org.id) ?? 0,
+        drugDraws: drawn.get(org.id)?.drug ?? 0,
+        alcoholDraws: drawn.get(org.id)?.alcohol ?? 0,
+        quarter,
+        services: readServices(org.services),
+        status: org.status,
+      }),
+    )
+    .sort((left, right) => Number(right.behind) - Number(left.behind) || left.organizationName.localeCompare(right.organizationName));
+  const rollup = paceRollup(companies);
   const book = bookSnapshot({
     seatBookCents: seat.seats * DRIVER_MONTHLY_CENTS,
     pastDueClients: seat.pastDue,
@@ -97,7 +151,7 @@ export async function loadOwnerDesk(sql: Sql, now = new Date()): Promise<OwnerDe
     orders,
   });
   const brief = dailyBrief({
-    pool: counts.pool,
+    pool: 0,
     quarter,
     newClients: counts.clients,
     driversAdded: counts.added,
@@ -110,13 +164,8 @@ export async function loadOwnerDesk(sql: Sql, now = new Date()): Promise<OwnerDe
     book,
     brief,
     quarter,
-    pace: {
-      drivers: counts.pool,
-      drugExpected: brief.drugExpected,
-      alcoholExpected: brief.alcoholExpected,
-      drugDraws: brief.drugDraws,
-      alcoholDraws: brief.alcoholDraws,
-    },
+    pace: rollup,
+    companyPace: companies,
     orders: orders.slice(0, 200),
     clients,
     recentClients: freshClients,

@@ -71,10 +71,17 @@ export function dailyBrief(input: {
   };
 }
 
-export function briefLines(brief: DailyBrief, quarter: number): string[] {
+export function briefLines(
+  brief: DailyBrief,
+  quarter: number,
+  companies?: { behind: number; withPool: number },
+): string[] {
+  const pace = companies
+    ? `Q${quarter}: ${companies.behind} of ${companies.withPool} companies with their own pool are behind the 50% drug / 10% alcohol pace. Draws are not combined across companies.`
+    : `Random pace is calculated per company. There is no combined fleet pool.`;
   return [
     `New clients this week: ${brief.newClients}. Drivers added this week: ${brief.driversAdded}.`,
-    `Q${quarter} random pace, against the drivers in the pool: drug ${brief.drugDraws} of ${brief.drugExpected} at 50%, alcohol ${brief.alcoholDraws} of ${brief.alcoholExpected} at 10%.`,
+    pace,
     `Tests paid but not sent to the lab: ${brief.paidNotSent}. Results still out: ${brief.resultsWaiting}.`,
     `Positives waiting for your Clearinghouse decision: ${brief.positives}. Refusals waiting for that same decision: ${brief.refusals}. Cards past due: ${brief.pastDueCards}.`,
   ];

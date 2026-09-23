@@ -24,7 +24,7 @@ async function testDb() {
 }
 
 describe("automation engine", () => {
-  it("draws the consortium pool, escalates only real exceptions, and activates billing without an owner", async () => {
+  it("draws each company on its own, escalates only real exceptions, and activates billing without an owner", async () => {
     const sql = await testDb();
     await sql.query(
       `insert into client_onboarding
@@ -56,10 +56,25 @@ describe("automation engine", () => {
     );
 
     const first = await runAutomationWith(sql, { reason: "test", now: new Date("2026-01-15T15:00:00Z") });
-    assert.equal(first.drugDraws, 1);
-    assert.equal(first.alcoholDraws, 1);
+    assert.equal(first.drugDraws, 2);
+    assert.equal(first.alcoholDraws, 2);
     assert.equal(first.preEmploymentOrders, 0);
     assert.equal(first.skipped, false);
+    const crossed = await sql.query<{ count: number }>(
+      `select count(*)::int as count
+       from random_selections s
+       join driver_roster r on r.id = s.roster_id
+       where s.account_id <> r.account_id`,
+    );
+    assert.equal(Number(crossed[0]?.count), 0);
+    const companyA = await sql.query<{ count: number }>(
+      `select count(*)::int as count from random_selections where account_id = 'onb_a'`,
+    );
+    const companyB = await sql.query<{ count: number }>(
+      `select count(*)::int as count from random_selections where account_id = 'onb_b'`,
+    );
+    assert.equal(Number(companyA[0]?.count), 2);
+    assert.equal(Number(companyB[0]?.count), 2);
 
     const second = await runAutomationWith(sql, { reason: "test", now: new Date("2026-01-15T16:00:00Z") });
     assert.equal(second.drugDraws, 0);
@@ -79,7 +94,7 @@ describe("automation engine", () => {
     const expired = await sql.query<{ count: number }>(
       `select count(*)::int as count from compliance_exceptions where dedupe_key like 'owner:medical_overdue:%' and resolved = false`,
     );
-    assert.equal(Number(expired[0]?.count), 1);
+    assert.equal(Number(expired[0]?.count), 0);
 
     await sql.query(`update driver_roster set medical_card_expires_on = '2027-06-01' where id = 'drv_CDL-A1'`);
     await runAutomationWith(sql, { reason: "test", now: new Date("2026-09-22T16:00:00Z") });
@@ -123,5 +138,67 @@ describe("automation engine", () => {
     assert.equal(org[0]?.stripe_customer_id, "cus_pending");
     const link = await sql.query<{ user_id: string }>(`select user_id from client_user_access where onboarding_id = 'onb_pending'`);
     assert.equal(link[0]?.user_id, "user_cam");
+  });
+
+  it("does not draw a one-driver company and opens the small-fleet exception", async () => {
+    const sql = await testDb();
+    await sql.query(
+      `insert into client_onboarding
+        (id, organization_name, dot_number, contact_name, contact_email, driver_count, services, status)
+       values ('onb_solo', 'Solo Haul', '1000009', 'Sam', 'sam@solo.test', 1, $1::jsonb, 'active')`,
+      [JSON.stringify(["dot_testing"])],
+    );
+    await sql.query(
+      `insert into driver_roster (id, account_id, name, cdl, hired_on, in_random_pool, needs_testing)
+       values ('drv_solo', 'onb_solo', 'Sam Solo', 'CDL-S1', '2020-01-01', true, true)`,
+    );
+    const summary = await runAutomationWith(sql, { reason: "test", now: new Date("2026-03-15T15:00:00Z") });
+    assert.equal(summary.drugDraws, 0);
+    assert.equal(summary.alcoholDraws, 0);
+    const selected = await sql.query<{ count: number }>(`select count(*)::int as count from random_selections where account_id = 'onb_solo'`);
+    assert.equal(Number(selected[0]?.count), 0);
+    const exception = await sql.query<{ count: number }>(
+      `select count(*)::int as count from compliance_exceptions where dedupe_key = 'owner:small_fleet:onb_solo' and resolved = false`,
+    );
+    assert.equal(Number(exception[0]?.count), 1);
+  });
+
+  it("selects five drug and one alcohol for a ten-driver company by year end, and never another company", async () => {
+    const sql = await testDb();
+    await sql.query(
+      `insert into client_onboarding
+        (id, organization_name, dot_number, contact_name, contact_email, driver_count, services, status)
+       values
+        ('onb_ten', 'Ten Haul', '1000010', 'Ten', 'ten@haul.test', 10, $1::jsonb, 'active'),
+        ('onb_other', 'Other Haul', '1000011', 'Other', 'other@haul.test', 3, $1::jsonb, 'active')`,
+      [JSON.stringify(["DOT drug and alcohol testing"])],
+    );
+    for (let index = 0; index < 10; index += 1) {
+      await sql.query(
+        `insert into driver_roster (id, account_id, name, cdl, hired_on) values ($1, 'onb_ten', $2, $3, '2019-01-01')`,
+        [`drv_ten_${index}`, `Driver ${index}`, `CDL-T${index}`],
+      );
+    }
+    for (const cdl of ["CDL-O1", "CDL-O2", "CDL-O3"]) {
+      await sql.query(
+        `insert into driver_roster (id, account_id, name, cdl, hired_on) values ($1, 'onb_other', $2, $3, '2019-01-01')`,
+        [`drv_${cdl}`, cdl, cdl],
+      );
+    }
+    await runAutomationWith(sql, { reason: "test", now: new Date("2026-12-15T15:00:00Z") });
+    const ten = await sql.query<{ testKind: string; count: number }>(
+      `select test_kind as "testKind", count(*)::int as count from random_selections where account_id = 'onb_ten' group by test_kind`,
+    );
+    const drug = ten.find((row) => row.testKind === "drug")?.count ?? 0;
+    const alcohol = ten.find((row) => row.testKind === "alcohol")?.count ?? 0;
+    assert.equal(Number(drug), 5);
+    assert.equal(Number(alcohol), 1);
+    const leak = await sql.query<{ count: number }>(
+      `select count(*)::int as count
+       from random_selections s
+       join driver_roster r on r.id = s.roster_id
+       where s.account_id = 'onb_ten' and r.account_id <> 'onb_ten'`,
+    );
+    assert.equal(Number(leak[0]?.count), 0);
   });
 });

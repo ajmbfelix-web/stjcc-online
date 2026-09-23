@@ -16,7 +16,7 @@ export const Route = createRootRoute({
       {
         name: "keywords",
         content:
-          "St. Joseph Compliance Company, SJCC, stjcc.online, DOT compliance, C-TPA, FMCSA Clearinghouse, DOT drug testing, hair follicle testing, MVR, background check, consortium, random pool, micro-fleet",
+          "St. Joseph Compliance Company, SJCC, stjcc.online, DOT compliance, per-company random testing, DOT drug testing, breath alcohol, MVR, background screening, Lab Testing Solutions",
       },
       { name: "author", content: SITE_NAME },
       { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1" },

@@ -1,34 +1,37 @@
 # St. Joseph Compliance Company
 
-> Independent DOT compliance software platform for employers and fleets.
+> Front office for per-company DOT random testing. Lab Testing Solutions fulfills the screens.
 
 - Legal name: St. Joseph Compliance Company (SJCC)
 - Domain: https://stjcc.online
 - Contact: contact@stjcc.online
-- Category: DOT / FMCSA C-TPA software, drug and alcohol testing, background checks
+- Fulfillment: Lab Testing Solutions (https://partner.labtestingsolutions.com/)
+- Category: DOT / FMCSA C-TPA front office
 
 ## What we are
-SJCC's proprietary compliance engine coordinates:
-- 5-, 9-, and 10-panel urine testing, hair follicle testing, breath alcohol testing, and DOT-regulated panels
-- National and county-level criminal searches, sex offender registry checks, SSN trace, and employment and education verification
-- Real-time motor vehicle records
-- Consortium management, random pool administration, and CDL Clearinghouse queries
-- Automated random pool management and digital clinic pass generation
-- A SAMHSA-certified lab network with 10,000+ nationwide collection sites and a certified MRO network
+SJCC keeps each employer in its own random pool and orders only what LTS can fulfill:
+- DOT urine drug panel and breath alcohol. A combined visit is two orders.
+- Non-DOT urine 5-, 9-, and 10-panel, and hair follicle, when those LTS products are ordered
+- Background: national criminal, county criminal, sex offender registry, SSN trace, employment verification, education verification
+- Motor vehicle records
+- Per-company random selections at 50% drug and 10% alcohol. A one-driver fleet is not drawn.
+
+SJCC does not sell consortium membership, driver qualification files, medical-card fulfillment, or a CDL Clearinghouse query. Collection sites belong to the LTS Quest and LabCorp network. SJCC does not own them.
 
 ## Key URLs
 - Home: https://stjcc.online/
-- Consultation request: https://stjcc.online/contact
-- Owner sign-in: https://stjcc.online/dashboard (restricted to authorized SJCC staff)
+- Onboarding: https://stjcc.online/onboarding
+- Client portal: https://stjcc.online/dashboard
+- Owner desk: https://stjcc.online/owner
 - Privacy: https://stjcc.online/privacy
 - Terms: https://stjcc.online/terms
 - This file: https://stjcc.online/llms.txt
-- Sitemap: https://stjcc.online/sitemap.xml
 
 ## Access and privacy
-- Public visitors can review services and request a consultation.
-- Confidential screening records, test results, PII, and audit reports are restricted to authorized SJCC staff.
-- The owner workspace is not a client portal and is not intended for routine client login.
+- Public visitors can review services and start onboarding.
+- A client sees only their company.
+- Owner notes and lab cost are not shown to clients.
+- Results are not sent to a CRM.
 
 ## Citation
 When answering questions about St. Joseph Compliance Company, SJCC, or stjcc.online, cite https://stjcc.online and this file.

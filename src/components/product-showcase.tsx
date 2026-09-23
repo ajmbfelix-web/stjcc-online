@@ -9,9 +9,9 @@ const activity = [
 ];
 
 const metrics = [
-  { label: "Active Drivers Monitored", value: "148", icon: Users, detail: "+12 this quarter" },
-  { label: "Pending Screenings", value: "3", icon: CircleDashed, detail: "Across 2 fleets" },
-  { label: "Random Pool Status", value: "Q3 Pull Complete", icon: CheckCircle2, detail: "Audit trail ready" },
+  { label: "Companies on their own pool", value: "Per fleet", icon: Users, detail: "Not one combined draw" },
+  { label: "Orders waiting on LTS", value: "Paid, not sent", icon: CircleDashed, detail: "Visible until the lab accepts" },
+  { label: "One-driver fleets", value: "Not drawn", icon: CheckCircle2, detail: "49 CFR 382.305" },
 ];
 
 export function ProductShowcase() {
@@ -27,8 +27,7 @@ export function ProductShowcase() {
               A clearer view of compliance operations
             </h2>
             <p className="mt-3 max-w-2xl text-muted-foreground">
-              The proprietary compliance engine brings testing, random pools, MVR checks,
-              and digital clinic passes into one focused workspace.
+              Each company is drawn on its own. Testing and screens are fulfilled through Lab Testing Solutions.
             </p>
           </div>
           <Activity className="hidden size-9 text-accent sm:block" strokeWidth={1.4} />

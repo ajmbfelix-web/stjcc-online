@@ -3,7 +3,7 @@ export const SITE_NAME = "St. Joseph Compliance Company";
 export const SITE_HANDLE = "stjcc.online";
 
 export const DEFAULT_DESCRIPTION =
-  "St. Joseph Compliance Company (SJCC) helps employers manage DOT drug and alcohol testing, background screening, motor vehicle records, consortium management, random pools, and CDL Clearinghouse queries.";
+  "St. Joseph Compliance Company runs per-company DOT random testing and orders drug, alcohol, background, and motor vehicle record work through Lab Testing Solutions.";
 
 export function canonical(path = "/") {
   const normalized = path.startsWith("/") ? path : `/${path}`;
@@ -30,9 +30,9 @@ export const jsonLdGraph = {
       areaServed: "United States",
       knowsAbout: [
         "DOT compliance",
-        "FMCSA Clearinghouse",
-        "C-TPA consortium management",
-        "DOT 5-Panel drug testing",
+        "Per-company random testing",
+        "DOT urine drug testing",
+        "Breath alcohol testing",
         "Motor vehicle records",
         "Employment and education verification",
       ],
@@ -55,7 +55,7 @@ export const jsonLdGraph = {
       url: SITE_URL,
       provider: { "@id": `${SITE_URL}/#organization` },
       description:
-        "DOT compliance services including regulated testing, background screening, motor vehicle records, consortium management, random pools, and CDL Clearinghouse queries.",
+        "Per-company random testing and LTS-fulfilled drug, alcohol, background, and motor vehicle record orders. SJCC does not sell a combined multi-employer pool.",
       offers: {
         "@type": "Offer",
         url: `${SITE_URL}/contact`,
@@ -71,7 +71,7 @@ export const jsonLdGraph = {
           name: "What does St. Joseph Compliance Company do?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "SJCC operates an independent DOT compliance platform for employers, combining drug and alcohol testing, background screening, real-time MVR checks, automated random pool management, CDL Clearinghouse queries, and digital clinic pass generation.",
+            text: "SJCC runs each employer's random program separately and orders drug, alcohol, background, and motor vehicle record work through Lab Testing Solutions.",
           },
         },
         {
@@ -87,7 +87,7 @@ export const jsonLdGraph = {
           name: "How does SJCC support nationwide collections?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Services include 5-, 9-, and 10-panel urine testing, hair follicle testing, breath alcohol testing, DOT-regulated panels, background screening, and MVRs.",
+            text: "DOT urine drug tests, breath alcohol, non-DOT urine panels, hair, background screens, and motor vehicle records, fulfilled through LTS.",
           },
         },
         {

@@ -1,3 +1,5 @@
+import { serviceRunsRandom } from "../billing/lts-catalog.ts";
+
 export const DRUG_ANNUAL_RATE = 0.5;
 export const ALCOHOL_ANNUAL_RATE = 0.1;
 export const SYSTEM_ACCOUNT_ID = "sjcc-system";
@@ -124,14 +126,48 @@ export function serviceList(services: unknown): string[] {
   return services.filter((item): item is string => typeof item === "string");
 }
 
+export const MIN_STANDALONE_POOL = 2;
+
+export function shouldDrawStandalone(poolSize: number, poolMode = "standalone"): boolean {
+  return poolMode === "standalone" && poolSize >= MIN_STANDALONE_POOL;
+}
+
+export function drawSeed(accountId: string, year: string, quarter: number, kind: "drug" | "alcohol"): string {
+  return `${accountId}:${year}-Q${quarter}:${kind}`;
+}
+
+export function smallFleetFindings(input: { accountId: string; organizationName: string; recipient?: string }): Finding[] {
+  const description =
+    "This fleet is too small for its own random program. A one-driver pool is not valid under 49 CFR 382.305. SJCC did not select a driver and did not add this fleet to another company's pool.";
+  return [
+    clientNotice({
+      dedupeKey: `client:small_fleet:${input.accountId}`,
+      title: `${input.organizationName} cannot run its own random program`,
+      description,
+      severity: "high",
+      source: "pool",
+      recipient: input.recipient,
+      template: "small_fleet",
+    }),
+    {
+      dedupeKey: `owner:small_fleet:${input.accountId}`,
+      audience: "owner",
+      severity: "high",
+      source: "pool",
+      title: `${input.organizationName} is below the standalone random minimum`,
+      description,
+    },
+  ];
+}
+
 export function trackingProfile(services: unknown): TrackingProfile {
-  const text = serviceList(services).join(" | ").toLowerCase();
-  const drug = /drug and alcohol|random pool/.test(text);
+  const list = serviceList(services);
+  const text = list.join(" | ").toLowerCase();
   return {
-    medical: /qualification|drug and alcohol|random pool/.test(text),
-    mvr: /mvr/.test(text) || drug,
-    clearinghouse: /clearinghouse/.test(text) || drug,
-    random: drug,
+    medical: /qualification file|medical card/.test(text),
+    mvr: /\bmvr\b|motor vehicle/.test(text),
+    clearinghouse: /clearinghouse/.test(text),
+    random: serviceRunsRandom(list),
   };
 }
 

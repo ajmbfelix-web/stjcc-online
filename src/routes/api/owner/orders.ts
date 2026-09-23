@@ -11,14 +11,14 @@ export const Route = createFileRoute("/api/owner/orders")({
     handlers: {
       POST: async ({ request }) => {
         try {
-          await requireOwner(request);
+          const owner = await requireOwner(request);
           const body = (await request.json()) as Record<string, unknown>;
           const action = typeof body.action === "string" ? body.action : "create";
           if (action === "result") {
             const id = typeof body.id === "string" ? body.id : "";
             const outcome = body.outcome === "exception" ? "exception" : body.outcome === "refusal" ? "refusal" : "cleared";
             const summary = typeof body.summary === "string" ? body.summary : outcome;
-            const recorded = await recordServiceResult(await getSql(), { id, outcome, summary });
+            const recorded = await recordServiceResult(await getSql(), { id, outcome, summary, actorUserId: owner.id });
             if (!recorded) return Response.json({ error: "That order is not paid yet" }, { status: 400 });
             if (resendConfigured()) {
               await sendOperationalEmail(
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/api/owner/orders")({
           if (action === "clearinghouse") {
             const id = typeof body.id === "string" ? body.id : "";
             const decision = body.decision === "withheld" ? "withheld" : "recorded";
-            const ok = await recordClearinghouseDecision(await getSql(), { id, decision });
+            const ok = await recordClearinghouseDecision(await getSql(), { id, decision, actorUserId: owner.id });
             if (!ok) return Response.json({ error: "This result is not waiting for an owner decision" }, { status: 400 });
             return Response.json({ ok: true, decision });
           }
@@ -52,6 +52,7 @@ export const Route = createFileRoute("/api/owner/orders")({
             sku: sku as "dot_drug",
             reason: body.channel === "staffing" ? "staffing" : "one_off",
             origin,
+            actorUserId: owner.id,
           });
           return Response.json(created, { status: 201 });
         } catch (error) {

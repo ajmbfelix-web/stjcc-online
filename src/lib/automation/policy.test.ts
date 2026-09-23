@@ -14,9 +14,10 @@ import {
   onboardingFindings,
   ownerEscalations,
   periodKey,
+  drawSeed,
   planRandomDraw,
   qualificationFindings,
-  selectionsDue,
+  shouldDrawStandalone,
   trackingProfile,
 } from "./policy.ts";
 
@@ -39,37 +40,59 @@ describe("portal access", () => {
   });
 });
 
-describe("consortium random draw", () => {
-  const pool = [
-    { id: "d1", accountId: "a" },
-    { id: "d2", accountId: "a" },
-    { id: "d3", accountId: "b" },
-    { id: "d4", accountId: "b" },
-  ];
-
-  it("paces the FMCSA annual rates across the shared pool", () => {
-    assert.equal(annualTarget(4, DRUG_ANNUAL_RATE), 2);
-    assert.equal(annualTarget(4, ALCOHOL_ANNUAL_RATE), 1);
-    assert.equal(selectionsDue({ poolSize: 4, rate: DRUG_ANNUAL_RATE, alreadySelectedThisYear: 0, quarter: 1 }), 1);
-    assert.equal(selectionsDue({ poolSize: 4, rate: DRUG_ANNUAL_RATE, alreadySelectedThisYear: 1, quarter: 2 }), 0);
-    assert.equal(selectionsDue({ poolSize: 4, rate: DRUG_ANNUAL_RATE, alreadySelectedThisYear: 1, quarter: 3 }), 1);
-    assert.equal(selectionsDue({ poolSize: 1, rate: ALCOHOL_ANNUAL_RATE, alreadySelectedThisYear: 0, quarter: 1 }), 1);
+describe("per-company random draw", () => {
+  it("targets each company on its own pool", () => {
+    assert.equal(annualTarget(10, DRUG_ANNUAL_RATE), 5);
+    assert.equal(annualTarget(10, ALCOHOL_ANNUAL_RATE), 1);
+    assert.equal(annualTarget(7, DRUG_ANNUAL_RATE), 4);
+    assert.equal(annualTarget(7, ALCOHOL_ANNUAL_RATE), 1);
+    assert.equal(shouldDrawStandalone(1), false);
+    assert.equal(shouldDrawStandalone(0), false);
+    assert.equal(shouldDrawStandalone(2), true);
+    const companyA = Array.from({ length: 10 }, (_, index) => ({ id: `a${index}`, accountId: "a" }));
+    const companyB = Array.from({ length: 7 }, (_, index) => ({ id: `b${index}`, accountId: "b" }));
+    let selected: string[] = [];
+    for (const quarter of [1, 2, 3, 4] as const) {
+      const drawn = planRandomDraw({
+        candidates: companyA,
+        alreadySelectedIds: selected,
+        rate: DRUG_ANNUAL_RATE,
+        quarter,
+        seed: drawSeed("a", "2026", quarter, "drug"),
+      });
+      assert.equal(drawn.every((item) => item.accountId === "a"), true);
+      selected = [...selected, ...drawn.map((item) => item.id)];
+    }
+    assert.equal(selected.length, 5);
+    const other = planRandomDraw({
+      candidates: companyB,
+      alreadySelectedIds: [],
+      rate: DRUG_ANNUAL_RATE,
+      quarter: 4,
+      seed: drawSeed("b", "2026", 4, "drug"),
+    });
+    assert.equal(other.length, 4);
+    assert.equal(other.some((item) => selected.includes(item.id)), false);
   });
 
-  it("is stable and does not redraw drivers already selected this year", () => {
+  it("is stable inside one company and does not redraw drivers already selected this year", () => {
+    const pool = [
+      { id: "d1", accountId: "a" },
+      { id: "d2", accountId: "a" },
+    ];
     const first = planRandomDraw({
       candidates: pool,
       alreadySelectedIds: [],
       rate: DRUG_ANNUAL_RATE,
       quarter: 1,
-      seed: "2026:drug",
+      seed: drawSeed("a", "2026", 1, "drug"),
     });
     const second = planRandomDraw({
       candidates: pool,
       alreadySelectedIds: [],
       rate: DRUG_ANNUAL_RATE,
       quarter: 1,
-      seed: "2026:drug",
+      seed: drawSeed("a", "2026", 1, "drug"),
     });
     assert.deepEqual(first, second);
     assert.equal(first.length, 1);
@@ -78,7 +101,7 @@ describe("consortium random draw", () => {
       alreadySelectedIds: first.map((item) => item.id),
       rate: DRUG_ANNUAL_RATE,
       quarter: 2,
-      seed: "2026:drug",
+      seed: drawSeed("a", "2026", 2, "drug"),
     });
     assert.equal(later.length, 0);
   });
@@ -109,18 +132,25 @@ describe("workflow decisions", () => {
   });
 
   it("tracks the services the organization actually bought", () => {
-    assert.deepEqual(trackingProfile(["DOT drug and alcohol testing"]), {
-      medical: true,
-      mvr: true,
-      clearinghouse: true,
+    assert.deepEqual(trackingProfile(["dot_testing"]), {
+      medical: false,
+      mvr: false,
+      clearinghouse: false,
       random: true,
     });
-    assert.deepEqual(trackingProfile(["Background screening"]), {
+    assert.deepEqual(trackingProfile(["DOT drug and alcohol testing"]), {
+      medical: false,
+      mvr: false,
+      clearinghouse: false,
+      random: true,
+    });
+    assert.deepEqual(trackingProfile(["background"]), {
       medical: false,
       mvr: false,
       clearinghouse: false,
       random: false,
     });
+    assert.equal(trackingProfile(["mvr"]).mvr, true);
   });
 });
 

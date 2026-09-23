@@ -36,8 +36,8 @@ function Privacy() {
           </p>
           <p>
             Operational data (driver identifiers, CDL numbers, screening statuses)
-            is processed solely to fulfill consortium, background, and drug/alcohol
-            testing workflows with a SAMHSA-certified lab network and certified MRO network.
+            is processed to run that employer's random program and to order drug, alcohol,
+            background, and motor vehicle record work through Lab Testing Solutions.
           </p>
           <p>
             We do not sell personal information. Access is limited to personnel and

@@ -24,22 +24,22 @@ const services = [
   {
     icon: FlaskConical,
     title: "Drug and alcohol testing",
-    body: "5-, 9-, and 10-panel urine testing, hair follicle testing, breath alcohol testing, and DOT-regulated panels through a SAMHSA-certified lab network.",
+    body: "DOT urine panels, non-DOT 5-, 9-, and 10-panel urine, hair, and breath alcohol. Collection is through Lab Testing Solutions and its Quest and LabCorp network.",
   },
   {
     icon: FileCheck2,
     title: "Background screening",
-    body: "National and county-level criminal searches, sex offender registry checks, SSN trace, and employment and education verification.",
+    body: "National and county criminal searches, sex offender registry, SSN trace, and employment and education verification. Only products LTS fulfills.",
   },
   {
     icon: ClipboardCheck,
     title: "Motor vehicle records",
-    body: "Real-time MVR access to help employers review driving history during hiring and ongoing compliance checks.",
+    body: "Driving-record orders placed with LTS. SJCC does not invent a record from a typed date.",
   },
   {
     icon: ShieldCheck,
-    title: "Consortium and CDL compliance",
-    body: "Full consortium management, random pool administration, and CDL Clearinghouse queries for DOT-regulated employers.",
+    title: "Per-company randoms",
+    body: "Each employer is its own random pool at 50% drug and 10% alcohol. A one-driver fleet is not drawn. SJCC does not sell a combined consortium.",
   },
 ];
 
@@ -54,7 +54,7 @@ const pipeline = [
 const faqs = [
   {
     q: "What does St. Joseph Compliance Company do?",
-    a: "SJCC coordinates drug and alcohol testing, background screening, motor vehicle records, consortium management, random pools, and CDL Clearinghouse queries for employers.",
+    a: "SJCC runs per-company random testing and orders drug, alcohol, background, and motor vehicle record work through Lab Testing Solutions. SJCC does not operate a single pool across clients.",
   },
   {
     q: "How does SJCC manage compliance work?",
@@ -62,7 +62,7 @@ const faqs = [
   },
   {
     q: "Which services does SJCC provide?",
-    a: "Services include 5-, 9-, and 10-panel urine testing, hair follicle testing, breath alcohol testing, DOT-regulated panels, background screening, and MVRs.",
+    a: "DOT urine drug tests, breath alcohol, non-DOT urine panels, hair, background screens, and motor vehicle records. A drug and alcohol visit is two orders, not one laboratory product.",
   },
   {
     q: "What is a digital clinic pass?",
@@ -88,8 +88,8 @@ function Home() {
               Straightforward compliance support for employers and fleets
             </h1>
             <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Our proprietary compliance engine manages testing, screening, real-time MVR
-              checks, random pools, and digital clinic passes for DOT-ready operations.
+              Our front office runs each company's random program and orders testing through Lab Testing Solutions.
+              Collection sites are the Quest and LabCorp network LTS already uses.
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg">
@@ -104,10 +104,10 @@ function Home() {
             </div>
             <dl className="mt-16 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-4">
               {[
-                ["5 / 9 / 10", "Urine panels"],
-                ["DOT", "Regulated testing"],
-                ["MVR", "Real-time records"],
-                ["CDL", "Clearinghouse queries"],
+                ["DOT", "Urine panel"],
+                ["BAT", "Breath alcohol"],
+                ["MVR", "Driving record"],
+                ["Own pool", "Per company"],
               ].map(([k, v]) => (
                 <div key={v} className="bg-card px-4 py-5">
                   <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
@@ -191,19 +191,26 @@ function Home() {
             <p className="mt-3 max-w-2xl text-muted-foreground">
               A full program is {money(DRIVER_MONTHLY_CENTS)} per testing driver each month, collected up front. One-off and staffing tests are a separate charge, taken before anything is sent to a clinic.
             </p>
-            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-              <article className="rounded-xl border border-primary bg-card p-5 lg:col-span-1">
-                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Program</p>
-                <p className="mt-3 text-3xl tabular-nums">{money(DRIVER_MONTHLY_CENTS)}</p>
-                <p className="mt-2 text-sm text-muted-foreground">Per testing driver, each month. Random pool included.</p>
-              </article>
-              {Object.values(CATALOG).map((item) => (
-                <article key={item.sku} className="rounded-xl border border-border bg-card p-5">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">{item.label}</p>
-                  <p className="mt-3 text-3xl tabular-nums">{money(item.cents).replace(".00", "")}</p>
-                  <p className="mt-2 text-sm text-muted-foreground">Charged before the order.</p>
-                </article>
-              ))}
+            <div className="mt-10 overflow-x-auto rounded-xl border border-border">
+              <table className="w-full min-w-[640px] text-left text-sm">
+                <thead className="border-b border-border font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                  <tr><th className="px-4 py-3">Service</th><th className="px-4 py-3">Price</th><th className="px-4 py-3">Fulfilled by</th></tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-border">
+                    <td className="px-4 py-3">Testing seat</td>
+                    <td className="px-4 py-3 tabular-nums">{money(DRIVER_MONTHLY_CENTS)} / driver / month</td>
+                    <td className="px-4 py-3 text-muted-foreground">SJCC administration. Not an LTS product.</td>
+                  </tr>
+                  {Object.values(CATALOG).map((item) => (
+                    <tr key={item.sku} className="border-b border-border last:border-0">
+                      <td className="px-4 py-3">{item.label}</td>
+                      <td className="px-4 py-3 tabular-nums">{money(item.cents)}</td>
+                      <td className="px-4 py-3 text-muted-foreground">Lab Testing Solutions</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild>

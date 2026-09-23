@@ -14,7 +14,7 @@ export const Route = createFileRoute("/contact")({
       {
         name: "description",
         content:
-          "Contact St. Joseph Compliance Company about drug testing, background screening, MVRs, consortium management, and DOT compliance services.",
+          "Contact St. Joseph Compliance Company about per-company random testing and LTS-fulfilled screens.",
       },
       { name: "robots", content: "index, follow" },
     ],
@@ -42,7 +42,7 @@ function Contact() {
         <h1 className="mt-3 text-3xl font-medium">Request a compliance consultation</h1>
         <p className="mt-3 text-sm text-muted-foreground">
           Tell us what your organization needs help with. We will follow up to
-          discuss testing, screening, MVR, consortium, or Clearinghouse services.
+          discuss DOT testing, background screening, or motor vehicle records. Randoms are per company. SJCC does not sell a consortium.
         </p>
         <form onSubmit={onSubmit} className="mt-10 space-y-4">
           <Field label="Organization" name="org" required />

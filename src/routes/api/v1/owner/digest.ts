@@ -39,7 +39,7 @@ async function sendDigest(request: Request): Promise<Response> {
     `SJCC book for ${day}.`,
     `Testing seats on file: ${money(desk.book.seatBookCents)}. Collected this month, including those seats: ${money(desk.book.collectedThisMonthCents)}.`,
     `Prepaid and not yet owed to the lab: ${money(desk.book.prepaidCents)}. Estimated lab cost on tests already sent this month: ${money(desk.book.estimatedVendorCents)}. Kept after that estimate: ${money(desk.book.retainedCents)}.`,
-    ...briefLines(desk.brief, desk.quarter),
+    ...briefLines(desk.brief, desk.quarter, desk.pace),
     "Nothing is filed with the Clearinghouse until you record that decision.",
   ].join("\n");
   if (resendConfigured()) await sendOperationalEmail(ownerInbox(), `SJCC Monday book ${day}`, text);

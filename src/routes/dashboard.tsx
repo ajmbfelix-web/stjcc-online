@@ -31,6 +31,11 @@ type ClientData = {
   roster?: RosterDriver[];
   selections?: Array<{ id: string; testKind: string; name: string; orderStatus: string | null }>;
   exceptions?: Array<{ id: string; title: string; description: string; severity: string }>;
+  history?: {
+    orders: Array<{ id: string; sku: string; status: string; candidateName: string; createdAt: string }>;
+    notices: Array<{ id: string; subject: string; status: string; createdAt: string }>;
+    pace: { pool: number; drugDraws: number; drugAnnual: number; alcoholDraws: number; alcoholAnnual: number; drugExpected: number; alcoholExpected: number } | null;
+  };
 };
 
 function authHeaders(json = false): HeadersInit {
@@ -201,8 +206,16 @@ function ClientPortal() {
                     </div>
                   </section>
                   <section className="rounded-xl border border-border bg-card p-5">
-                    <h2 className="text-2xl">This quarter</h2>
-                    <ul className="mt-4 space-y-2 text-sm">
+                    <h2 className="text-2xl">This company, this year</h2>
+                    <p className="mt-2 text-sm text-muted-foreground">Draws are only drivers at {data.onboarding?.organizationName ?? "this company"}. Other SJCC clients are a different pool.</p>
+                    <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                      <div><dt className="text-muted-foreground">Covered drivers</dt><dd className="tabular-nums">{data.history?.pace?.pool ?? 0}</dd></div>
+                      <div><dt className="text-muted-foreground">Drug selected</dt><dd className="tabular-nums">{data.history?.pace?.drugDraws ?? 0} / {data.history?.pace?.drugAnnual ?? 0}</dd></div>
+                      <div><dt className="text-muted-foreground">Alcohol selected</dt><dd className="tabular-nums">{data.history?.pace?.alcoholDraws ?? 0} / {data.history?.pace?.alcoholAnnual ?? 0}</dd></div>
+                      <div><dt className="text-muted-foreground">Quarter pace</dt><dd className="tabular-nums">{data.history?.pace?.drugExpected ?? 0} drug · {data.history?.pace?.alcoholExpected ?? 0} alcohol</dd></div>
+                    </dl>
+                    <h3 className="mt-6 text-lg">This quarter</h3>
+                    <ul className="mt-2 space-y-2 text-sm">
                       {data.selections?.map((item) => (
                         <li key={item.id} className="flex items-center justify-between gap-3">
                           <span>{item.name}</span>
@@ -232,6 +245,32 @@ function ClientPortal() {
                 {notice ? <p className="text-sm text-muted-foreground sm:col-span-2">{notice}</p> : null}
                 <Button type="submit" className="sm:col-span-2 sm:w-fit">Save driver</Button>
               </form>
+              <section className="grid gap-6 lg:grid-cols-2">
+                <div className="rounded-xl border border-border bg-card p-5">
+                  <h2 className="text-2xl">Orders</h2>
+                  <ul className="mt-4 space-y-2 text-sm">
+                    {data.history?.orders.map((order) => (
+                      <li key={order.id} className="flex items-center justify-between gap-3">
+                        <span>{order.candidateName} · {order.sku}</span>
+                        <span className="text-muted-foreground">{order.status.replaceAll("_", " ")}</span>
+                      </li>
+                    ))}
+                    {!data.history?.orders.length ? <li className="text-muted-foreground">No tests or screens have been ordered yet.</li> : null}
+                  </ul>
+                </div>
+                <div className="rounded-xl border border-border bg-card p-5">
+                  <h2 className="text-2xl">Notices</h2>
+                  <ul className="mt-4 space-y-2 text-sm">
+                    {data.history?.notices.map((notice) => (
+                      <li key={notice.id}>
+                        <div>{notice.subject}</div>
+                        <div className="text-muted-foreground">{notice.status}</div>
+                      </li>
+                    ))}
+                    {!data.history?.notices.length ? <li className="text-muted-foreground">No notices yet.</li> : null}
+                  </ul>
+                </div>
+              </section>
             </>
           ) : null}
         </div>

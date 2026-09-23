@@ -27,7 +27,7 @@ function ClientsPage() {
           <tbody>
             {clients.map((client) => (
               <tr key={client.id} className="border-b border-border">
-                <td className="px-4 py-3">{client.organizationName}<div className="text-muted-foreground">{client.contactEmail}</div></td>
+                <td className="px-4 py-3"><a className="hover:underline" href={`/owner/clients/${client.id}`}>{client.organizationName}</a><div className="text-muted-foreground">{client.contactEmail}</div></td>
                 <td className="px-4 py-3 font-mono">{client.dotNumber}</td>
                 <td className="px-4 py-3 tabular-nums">{client.billedDrivers}</td>
                 <td className="px-4 py-3">{client.status} · {client.billingStatus}</td>

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { stripeConfigured } from "../billing/stripe.server.ts";
 import { resendConfigured, sendOperationalEmail } from "../notifications/resend.server.ts";
+import { recordAudit } from "../compliance/audit.ts";
 import {
   ALCOHOL_ANNUAL_RATE,
   DRUG_ANNUAL_RATE,
@@ -9,6 +10,7 @@ import {
   type ScreeningStatus,
   collectionFindings,
   decideLabUpdate,
+  drawSeed,
   labOwnerFinding,
   needsPreEmployment,
   onboardingFindings,
@@ -16,6 +18,8 @@ import {
   periodKey,
   planRandomDraw,
   qualificationFindings,
+  shouldDrawStandalone,
+  smallFleetFindings,
   todayUtc,
   trackingProfile,
   yearKey,
@@ -53,6 +57,7 @@ type OrgRow = {
   status: string;
   billingStatus: string;
   services: unknown;
+  poolMode: string;
   createdAt: string | Date;
 };
 
@@ -80,7 +85,7 @@ type PendingOrder = {
   createdAt: string | Date;
 };
 
-const MANAGED_SOURCES = ["qualification", "escalation", "random", "onboarding", "billing_config"];
+const MANAGED_SOURCES = ["qualification", "escalation", "random", "onboarding", "billing_config", "pool"];
 
 function dateOnly(value: string | Date | null | undefined): string | null {
   if (!value) return null;
@@ -239,10 +244,24 @@ async function deliverPending(sql: Sql, summary: RunSummary): Promise<void> {
     try {
       await sendOperationalEmail(notice.recipient, notice.subject, notice.body);
       await sql.query(`update notification_outbox set status = 'sent', sent_at = now(), error = null where id = $1`, [notice.id]);
+      await recordAudit(sql, {
+        onboardingId: notice.account_id,
+        action: "notification_sent",
+        entityType: "notification_outbox",
+        entityId: notice.id,
+        metadata: { template: notice.dedupe_key },
+      });
       summary.notificationsSent += 1;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Email send failed";
       await sql.query(`update notification_outbox set status = 'failed', error = $2 where id = $1`, [notice.id, message]);
+      await recordAudit(sql, {
+        onboardingId: notice.account_id,
+        action: "notification_failed",
+        entityType: "notification_outbox",
+        entityId: notice.id,
+        metadata: { template: notice.dedupe_key },
+      });
       await upsertFinding(sql, notice.account_id || SYSTEM_ACCOUNT_ID, {
         dedupeKey: `owner:email_failed:${notice.dedupe_key}`,
         audience: "owner",
@@ -285,7 +304,7 @@ export async function runAutomationWith(sql: Sql, options: RunOptions): Promise<
 
   const orgs = await sql.query<OrgRow>(
     `select id, organization_name as "organizationName", contact_email as "contactEmail", status,
-            billing_status as "billingStatus", services, created_at as "createdAt"
+            billing_status as "billingStatus", services, pool_mode as "poolMode", created_at as "createdAt"
      from client_onboarding`,
   );
   const roster = await sql.query<RosterRow>(
@@ -311,8 +330,8 @@ export async function runAutomationWith(sql: Sql, options: RunOptions): Promise<
     `select id, account_id as "accountId", name, cdl, roster_id as "rosterId", order_reason as "orderReason", created_at as "createdAt"
      from compliance_drivers where status = 'COLLECTION_PENDING'`,
   );
-  const selected = await sql.query<{ rosterId: string; testKind: string }>(
-    `select roster_id as "rosterId", test_kind as "testKind" from random_selections where period like $1`,
+  const selected = await sql.query<{ accountId: string; rosterId: string; testKind: string }>(
+    `select account_id as "accountId", roster_id as "rosterId", test_kind as "testKind" from random_selections where period like $1`,
     [`${yearKey(now)}-Q%`],
   );
   const openClient = await sql.query<{ dedupeKey: string; createdAt: string | Date; accountId: string }>(
@@ -393,22 +412,40 @@ export async function runAutomationWith(sql: Sql, options: RunOptions): Promise<
     }
   }
 
-  const randomPool = roster.filter((driver) => {
-    const org = orgById.get(driver.accountId);
-    if (!org || (org.status !== "active" && org.status !== "past_due") || driver.inRandomPool === false || driver.needsTesting === false) return false;
-    return trackingProfile(servicesOf(org.services)).random;
-  });
   const quarter = Number(periodKey(now).slice(-1));
+  const year = yearKey(now);
   const draws: Array<{ driver: RosterRow; kind: "drug" | "alcohol" }> = [];
-  for (const kind of ["drug", "alcohol"] as const) {
-    const chosen = planRandomDraw({
-      candidates: randomPool,
-      alreadySelectedIds: selected.filter((row) => row.testKind === kind).map((row) => row.rosterId),
-      rate: kind === "drug" ? DRUG_ANNUAL_RATE : ALCOHOL_ANNUAL_RATE,
-      quarter,
-      seed: `${yearKey(now)}:${kind}`,
-    });
-    for (const driver of chosen) draws.push({ driver, kind });
+  for (const org of orgs) {
+    if (org.status !== "active" && org.status !== "past_due") continue;
+    if (!trackingProfile(servicesOf(org.services)).random) continue;
+    const pool = roster.filter(
+      (driver) => driver.accountId === org.id && driver.inRandomPool !== false && driver.needsTesting !== false,
+    );
+    if ((org.poolMode || "standalone") !== "standalone") {
+      ensure(org.id).push({
+        dedupeKey: `owner:pool_mode:${org.id}`,
+        audience: "owner",
+        severity: "high",
+        source: "pool",
+        title: `${org.organizationName} is not on its own random pool`,
+        description: "Random draws run only when pool_mode is standalone. These drivers were not added to another company's pool.",
+      });
+      continue;
+    }
+    if (!shouldDrawStandalone(pool.length, org.poolMode)) {
+      if (pool.length === 1) ensure(org.id).push(...smallFleetFindings({ accountId: org.id, organizationName: org.organizationName, recipient: org.contactEmail }));
+      continue;
+    }
+    for (const kind of ["drug", "alcohol"] as const) {
+      const chosen = planRandomDraw({
+        candidates: pool,
+        alreadySelectedIds: selected.filter((row) => row.testKind === kind && row.accountId === org.id).map((row) => row.rosterId),
+        rate: kind === "drug" ? DRUG_ANNUAL_RATE : ALCOHOL_ANNUAL_RATE,
+        quarter,
+        seed: drawSeed(org.id, year, quarter, kind),
+      });
+      for (const driver of chosen) draws.push({ driver, kind });
+    }
   }
 
   for (const draw of draws) {
@@ -475,6 +512,7 @@ export async function runAutomationWith(sql: Sql, options: RunOptions): Promise<
         complianceOrderId: order.id,
         sku,
         reason: order.orderReason,
+        rosterId: order.rosterId,
       });
     } catch {
       payment = "unpaid";
@@ -538,6 +576,13 @@ export async function syncLabStatus(
     `update compliance_drivers set status = $1, updated_at = now() where id = $2 and account_id = $3`,
     [decision.status, input.driverId, input.accountId],
   );
+  await recordAudit(sql, {
+    onboardingId: input.accountId,
+    action: "lab_result",
+    entityType: "compliance_driver",
+    entityId: input.driverId,
+    metadata: { status: decision.status },
+  });
   const ownerFinding = labOwnerFinding(input.driverId, input.driverName, decision.status);
   if (ownerFinding) await upsertFinding(sql, input.accountId, ownerFinding);
   if (decision.status === "CLEARED" || decision.status === "COLLECTION_COMPLETE") {
@@ -662,6 +707,14 @@ export async function applyBillingEvent(
     });
   }
 
+  await recordAudit(sql, {
+    onboardingId: input.onboardingId,
+    action: "billing_status",
+    entityType: "client_onboarding",
+    entityId: input.onboardingId,
+    metadata: { decision, eventType: input.eventType },
+  });
+
   return decision;
 }
 
@@ -700,6 +753,7 @@ export async function saveRosterDriver(
     hiredOn?: string | null;
     inRandomPool?: boolean;
     needsTesting?: boolean;
+    actorUserId?: string | null;
   },
 ): Promise<{ id: string }> {
   const cdl = input.cdl.trim().toUpperCase();
@@ -734,5 +788,13 @@ export async function saveRosterDriver(
   );
   const id = rows[0]?.id;
   if (!id) throw new Error("Roster update failed");
+  await recordAudit(sql, {
+    onboardingId: accountId,
+    actorUserId: input.actorUserId,
+    action: "roster_saved",
+    entityType: "driver_roster",
+    entityId: id,
+    metadata: { needsTesting },
+  });
   return { id };
 }

@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { AGREEMENT_TITLE, AGREEMENT_VERSION, AGREEMENT_VERSION_ID, agreementBlocker, masterAgreementBody, type AgreementAcceptance } from "../agreements/master";
+import { recordAudit } from "../compliance/audit";
 import { getSql } from "../db";
 
 export type OnboardingInput = {
@@ -49,7 +50,16 @@ export async function createOnboarding(input: OnboardingInput): Promise<Onboardi
       input.submittedByUserId ?? null,
     ],
   );
-  return rows[0];
+  const created = rows[0];
+  await recordAudit(sql, {
+    onboardingId: id,
+    actorUserId: input.submittedByUserId,
+    action: "onboarding_created",
+    entityType: "client_onboarding",
+    entityId: id,
+    metadata: { services: input.services },
+  });
+  return created;
 }
 
 export async function ensureAgreementVersion(): Promise<void> {
@@ -99,6 +109,13 @@ export async function acceptAgreement(input: AgreementAcceptanceInput): Promise<
     `update client_onboarding set status = 'payment_pending', updated_at = now() where id = $1 and status = 'in_progress'`,
     [input.onboardingId],
   );
+  await recordAudit(sql, {
+    onboardingId: input.onboardingId,
+    action: "agreement_accepted",
+    entityType: "agreement",
+    entityId: AGREEMENT_VERSION_ID,
+    metadata: { version: AGREEMENT_VERSION },
+  });
 }
 
 export async function listOnboarding(): Promise<OnboardingRecord[]> {

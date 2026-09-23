@@ -5,6 +5,7 @@ import { Wordmark } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AGREEMENT_ACKNOWLEDGMENTS, AGREEMENT_SECTIONS, AGREEMENT_TITLE, AGREEMENT_VERSION } from "@/lib/agreements/master";
+import { ONBOARDING_SERVICES } from "@/lib/billing/lts-catalog";
 import { getBearerToken } from "@/lib/auth/client";
 import { pageTitle } from "@/lib/seo";
 
@@ -13,14 +14,7 @@ export const Route = createFileRoute("/onboarding")({
   component: Onboarding,
 });
 
-const services = [
-  "DOT drug and alcohol testing",
-  "Random pool management",
-  "MVR monitoring",
-  "FMCSA Clearinghouse queries",
-  "Driver qualification file",
-  "Background screening",
-];
+const services = ONBOARDING_SERVICES;
 
 function authHeaders(json = false): HeadersInit {
   const token = getBearerToken();
@@ -172,16 +166,19 @@ function Onboarding() {
             <Field name="contactEmail" label="Email address" type="email" required />
             <Field name="driverCount" label="Drivers who need testing" type="number" min="1" required />
             <p className="text-sm text-muted-foreground sm:col-span-2">
-              $7 per driver per month, collected before the portal opens. A driver added later, beyond these seats, is charged $7 that day. One-off tests are charged before they are ordered: DOT drug $65, breath alcohol $55, both $110, MVR $15.
+              $7 per driver per month, collected before the portal opens. A driver added later, beyond these seats, is charged $7 that day. DOT urine and breath alcohol are separate orders. A motor vehicle record is $15. Other screens use the published catalog.
             </p>
           </section>
           <section className="rounded-xl border border-border bg-card p-6">
             <h2 className="text-2xl">Services</h2>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {services.map((service) => (
-                <label key={service} className="flex items-center gap-3 text-sm">
-                  <input type="checkbox" name="services" value={service} className="size-4 accent-[var(--color-primary)]" />
-                  {service}
+                <label key={service.id} className="flex items-start gap-3 text-sm">
+                  <input type="checkbox" name="services" value={service.id} className="mt-1 size-4 accent-[var(--color-primary)]" />
+                  <span>
+                    <span className="font-medium">{service.label}</span>
+                    <span className="mt-1 block text-muted-foreground">{service.detail}</span>
+                  </span>
                 </label>
               ))}
             </div>

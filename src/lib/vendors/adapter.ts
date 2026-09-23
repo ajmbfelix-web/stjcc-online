@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { ltsCredentialsPresent, LtsLabProvider } from "./lts.ts";
 
 export interface OrderPayload {
   driverId: string;
@@ -68,17 +69,12 @@ export class MockLabProvider implements LabVendorProvider {
   }
 }
 
+/** True only when LTS credentials exist. Mock must not mark an order sent. */
 export function labConfigured(): boolean {
-  const vendor = process.env.LAB_VENDOR?.trim() ?? "";
-  const base = process.env.LAB_API_BASE_URL?.trim() ?? "";
-  const key = process.env.LAB_API_KEY?.trim() ?? "";
-  if (!vendor || !base || !key) return false;
-  return ![vendor, base, key].some((value) => value === "..." || value.includes("..."));
+  return ltsCredentialsPresent();
 }
 
 export function getLabVendorProvider(): LabVendorProvider {
-  const vendor = process.env.LAB_VENDOR?.trim().toLowerCase();
-  if (vendor === "mock") return new MockLabProvider();
-  if (!labConfigured()) throw new Error("Laboratory connection is not configured");
-  throw new Error("The laboratory vendor is not connected yet. Orders stay inside SJCC until the Labcorp instructions are added.");
+  if (ltsCredentialsPresent()) return new LtsLabProvider();
+  return new MockLabProvider();
 }

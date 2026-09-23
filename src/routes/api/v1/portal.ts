@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { loadClientHistory } from "@/lib/accounts/file.server";
 import { activationChecklist, periodKey } from "@/lib/automation/policy";
 import { runAutomation } from "@/lib/automation/engine";
 import { stripeConfigured } from "@/lib/billing/stripe.server";
@@ -135,6 +136,11 @@ export const Route = createFileRoute("/api/v1/portal")({
             ),
           ]);
 
+          if (!access.onboardingId) {
+            return Response.json({ error: "An active organization workspace is required" }, { status: 403 });
+          }
+
+          const history = await loadClientHistory(sql, access.onboardingId);
           return Response.json({
             access: { kind: access.kind, onboardingId: access.onboardingId, role: access.role, status: access.status, billingStatus: access.billingStatus },
             onboarding,
@@ -142,6 +148,7 @@ export const Route = createFileRoute("/api/v1/portal")({
             roster,
             selections,
             exceptions,
+            history,
             automation,
           });
         } catch (error) {

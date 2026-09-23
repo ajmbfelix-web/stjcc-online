@@ -50,6 +50,7 @@ export const Route = createFileRoute("/api/v1/roster")({
             hiredOn: optionalDate(body.hiredOn),
             inRandomPool: needsTesting,
             needsTesting,
+            actorUserId: access.user.id,
           });
           try {
             const after = await countBillableDrivers(sql, access.onboardingId);

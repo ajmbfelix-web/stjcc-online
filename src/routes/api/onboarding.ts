@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { invalidOnboardingServices } from "@/lib/billing/lts-catalog";
 import { agreementBlocker, type AgreementAcceptance } from "@/lib/agreements/master";
 import { renderSignedAgreement } from "@/lib/agreements/pdf.server";
 import { runAutomation } from "@/lib/automation/engine";
@@ -43,6 +44,10 @@ export const Route = createFileRoute("/api/onboarding")({
 
         if (!organizationName || !dotNumber || !contactName || !contactEmail || driverCount < 1) {
           return Response.json({ error: "Organization, contact, and at least one driver are required" }, { status: 400 });
+        }
+        const rejected = invalidOnboardingServices(services);
+        if (rejected.length) {
+          return Response.json({ error: "Choose only services Lab Testing Solutions can fulfill" }, { status: 400 });
         }
         const blocker = agreementBlocker(acceptance);
         if (blocker) return Response.json({ error: blocker }, { status: 400 });
