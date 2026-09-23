@@ -10,14 +10,14 @@ export const Route = createFileRoute("/owner/staffing")({
 });
 
 function StaffingDesk() {
-  const [rows, setRows] = useState<Array<{ id: string; companyName: string; candidateName: string; status: string; amountCents: number; resultEmail: string }>>([]);
+  const [rows, setRows] = useState<Array<{ id: string; companyName: string; candidateName: string; status: string; amountCents: number; estimatedCostCents: number; resultEmail: string }>>([]);
   const [href, setHref] = useState("/screen");
   const [copied, setCopied] = useState(false);
   useEffect(() => {
     setHref(`${window.location.origin}/screen`);
     void fetch("/api/owner/desk", { headers: ownerHeaders(), credentials: "include" })
       .then(async (response) => {
-        const json = (await response.json()) as { orders?: Array<{ id: string; channel: string; companyName: string; candidateName: string; status: string; amountCents: number; resultEmail: string }> };
+        const json = (await response.json()) as { orders?: Array<{ id: string; channel: string; companyName: string; candidateName: string; status: string; amountCents: number; estimatedCostCents: number; resultEmail: string }> };
         setRows((json.orders ?? []).filter((order) => order.channel === "staffing"));
       });
   }, []);
@@ -40,7 +40,7 @@ function StaffingDesk() {
         {rows.map((row) => (
           <article key={row.id} className="rounded-xl border border-border bg-card p-4 text-sm">
             <div className="font-medium">{row.candidateName} · {row.companyName}</div>
-            <div className="text-muted-foreground">{row.status} · ${(row.amountCents / 100).toFixed(2)} · {row.resultEmail}</div>
+            <div className="text-muted-foreground">{row.status} · ${(row.amountCents / 100).toFixed(2)} charged · about ${((row.amountCents - row.estimatedCostCents) / 100).toFixed(2)} kept after the estimated lab cost · {row.resultEmail}</div>
           </article>
         ))}
         {!rows.length ? <p className="text-sm text-muted-foreground">No staffing orders yet.</p> : null}

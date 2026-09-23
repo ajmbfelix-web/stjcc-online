@@ -56,41 +56,41 @@ function ReportsPage() {
         <ChartCard title="Random pace" note="Expected is the pale bar. Drawn so far is the teal bar.">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={paceRows}>
-              <XAxis dataKey="name" stroke="#53615d" fontSize={12} />
-              <YAxis stroke="#53615d" fontSize={12} allowDecimals={false} />
+              <XAxis dataKey="name" stroke="var(--color-subtle)" fontSize={12} />
+              <YAxis stroke="var(--color-subtle)" fontSize={12} allowDecimals={false} />
               <Tooltip />
-              <Bar dataKey="expected" fill="#d7e0dc" />
-              <Bar dataKey="actual" fill="#176f67" />
+              <Bar dataKey="expected" fill="var(--color-border)" />
+              <Bar dataKey="actual" fill="var(--color-primary)" />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
         <ChartCard title="Seats by client" note="Each bar is billed testing drivers, at $7 a seat.">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={seats}>
-              <XAxis dataKey="name" stroke="#53615d" fontSize={11} interval={0} angle={-20} height={60} />
-              <YAxis stroke="#53615d" fontSize={12} allowDecimals={false} />
+              <XAxis dataKey="name" stroke="var(--color-subtle)" fontSize={11} interval={0} angle={-20} height={60} />
+              <YAxis stroke="var(--color-subtle)" fontSize={12} allowDecimals={false} />
               <Tooltip />
-              <Bar dataKey="seats" fill="#197c72" />
+              <Bar dataKey="seats" fill="var(--color-primary)" />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
         <ChartCard title="Tests by status" note="Unpaid is not ordered. Prepaid stays here until the laboratory accepts it.">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={statusRows}>
-              <XAxis dataKey="name" stroke="#53615d" fontSize={11} />
-              <YAxis stroke="#53615d" fontSize={12} allowDecimals={false} />
+              <XAxis dataKey="name" stroke="var(--color-subtle)" fontSize={11} />
+              <YAxis stroke="var(--color-subtle)" fontSize={12} allowDecimals={false} />
               <Tooltip />
-              <Bar dataKey="count" fill="#173c37" />
+              <Bar dataKey="count" fill="var(--color-secondary-foreground)" />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
         <ChartCard title="Where the test came from" note="Client seats, one-off companies, and staffing screens.">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={channelRows}>
-              <XAxis dataKey="name" stroke="#53615d" fontSize={12} />
-              <YAxis stroke="#53615d" fontSize={12} allowDecimals={false} />
+              <XAxis dataKey="name" stroke="var(--color-subtle)" fontSize={12} />
+              <YAxis stroke="var(--color-subtle)" fontSize={12} allowDecimals={false} />
               <Tooltip />
-              <Bar dataKey="count" fill="#197c72" />
+              <Bar dataKey="count" fill="var(--color-accent)" />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>

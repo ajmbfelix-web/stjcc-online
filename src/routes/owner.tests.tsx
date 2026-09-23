@@ -12,7 +12,7 @@ export const Route = createFileRoute("/owner/tests")({
   component: () => <SignInGate><TestsPage /></SignInGate>,
 });
 
-type Order = { id: string; status: string; companyName: string; candidateName: string; sku: string; amountCents: number; channel: string; clearinghouse: string; resultEmail: string };
+type Order = { id: string; status: string; companyName: string; candidateName: string; sku: string; amountCents: number; channel: string; clearinghouse: string; resultEmail: string; resultSummary?: string | null };
 
 function TestsPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -80,10 +80,12 @@ function TestsPage() {
                   <>
                     <Button size="sm" variant="outline" onClick={() => void act(order.id, { action: "result", outcome: "cleared", summary: "Negative result recorded." })}>Clear</Button>
                     <Button size="sm" variant="outline" onClick={() => void act(order.id, { action: "result", outcome: "exception", summary: "Non-negative result. Owner decision required before any Clearinghouse report." })}>Non-negative</Button>
+                    <Button size="sm" variant="outline" onClick={() => void act(order.id, { action: "result", outcome: "refusal", summary: "Refusal. The collection was not completed." })}>Refusal</Button>
                   </>
                 ) : null}
                 {order.clearinghouse === "awaiting_owner" ? (
                   <>
+                    <Button size="sm" variant="outline" onClick={() => void act(order.id, { action: "result", outcome: "refusal", summary: "Refusal. The collection was not completed." })}>Mark refusal</Button>
                     <Button size="sm" onClick={() => void act(order.id, { action: "clearinghouse", decision: "recorded" })}>I reported this</Button>
                     <Button size="sm" variant="outline" onClick={() => void act(order.id, { action: "clearinghouse", decision: "withheld" })}>Do not report</Button>
                   </>

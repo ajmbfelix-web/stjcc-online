@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { CATALOG, DRIVER_MONTHLY_CENTS } from "./catalog.ts";
+import { dailyBrief, isRefusal, paceTarget } from "./brief.ts";
 import { bookSnapshot } from "./ledger.ts";
 
 describe("published prices", () => {
@@ -31,5 +32,33 @@ describe("owner book", () => {
     assert.equal(book.collectedThisMonthCents, 1400 + 6500 + 5500);
     assert.equal(book.estimatedVendorCents, 3500);
     assert.equal(book.pastDueClients, 1);
+  });
+});
+
+describe("daily brief", () => {
+  it("keeps prepaid tests, open results, and owner-only Clearinghouse items apart", () => {
+    assert.equal(paceTarget(10, 0.5, 3), 4);
+    const brief = dailyBrief({
+      pool: 10,
+      quarter: 3,
+      newClients: 2,
+      driversAdded: 3,
+      drugDraws: 1,
+      alcoholDraws: 0,
+      pastDueCards: 1,
+      orders: [
+        { status: "dispatch_pending", clearinghouse: "not_required" },
+        { status: "sent", clearinghouse: "not_required" },
+        { status: "exception", clearinghouse: "awaiting_owner", resultSummary: "Non-negative" },
+        { status: "exception", clearinghouse: "awaiting_owner", resultSummary: "Refusal. No collection." },
+        { status: "exception", clearinghouse: "recorded", resultSummary: "Non-negative" },
+      ],
+    });
+    assert.equal(brief.paidNotSent, 1);
+    assert.equal(brief.resultsWaiting, 1);
+    assert.equal(brief.positives, 1);
+    assert.equal(brief.refusals, 1);
+    assert.equal(brief.drugExpected, 4);
+    assert.equal(isRefusal({ status: "exception", reason: "refusal" }), true);
   });
 });

@@ -16,7 +16,7 @@ export const Route = createFileRoute("/api/owner/orders")({
           const action = typeof body.action === "string" ? body.action : "create";
           if (action === "result") {
             const id = typeof body.id === "string" ? body.id : "";
-            const outcome = body.outcome === "exception" ? "exception" : "cleared";
+            const outcome = body.outcome === "exception" ? "exception" : body.outcome === "refusal" ? "refusal" : "cleared";
             const summary = typeof body.summary === "string" ? body.summary : outcome;
             const recorded = await recordServiceResult(await getSql(), { id, outcome, summary });
             if (!recorded) return Response.json({ error: "That order is not paid yet" }, { status: 400 });

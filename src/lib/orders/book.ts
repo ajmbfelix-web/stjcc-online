@@ -54,7 +54,7 @@ export async function markServiceOrderPaid(sql: Sql, input: { id?: string; sessi
   );
 }
 
-export async function recordServiceResult(sql: Sql, input: { id: string; outcome: "cleared" | "exception"; summary: string }): Promise<{ clearinghouse: string; resultEmail: string; companyName: string; candidateName: string; sku: string } | null> {
+export async function recordServiceResult(sql: Sql, input: { id: string; outcome: "cleared" | "exception" | "refusal"; summary: string }): Promise<{ clearinghouse: string; resultEmail: string; companyName: string; candidateName: string; sku: string } | null> {
   const rows = await sql.query<{ clearinghouse: string; resultEmail: string; companyName: string; candidateName: string; sku: string; channel: string; status: string }>(
     `select clearinghouse, result_email as "resultEmail", company_name as "companyName", candidate_name as "candidateName", sku, channel, status
      from service_orders where id = $1`,
@@ -63,14 +63,18 @@ export async function recordServiceResult(sql: Sql, input: { id: string; outcome
   const order = rows[0];
   if (!order || order.status === "unpaid") return null;
   const item = catalogItem(order.sku);
-  const needsOwner = input.outcome === "exception" && Boolean(item?.clearinghouse);
-  await sql.query(
+  const refusal = input.outcome === "refusal";
+  const needsOwner = (input.outcome === "exception" || refusal) && Boolean(item?.clearinghouse);
+  const summary = refusal && !input.summary.toLowerCase().includes("refus") ? `Refusal. ${input.summary}` : input.summary;
+  const updated = await sql.query<{ id: string }>(
     `update service_orders
      set status = $2, result_summary = $3,
          clearinghouse = case when $4 then 'awaiting_owner' else clearinghouse end
-     where id = $1`,
-    [input.id, input.outcome === "exception" ? "exception" : "result", input.summary.trim(), needsOwner],
+     where id = $1 and clearinghouse <> 'recorded'
+     returning id`,
+    [input.id, input.outcome === "cleared" ? "result" : "exception", summary.trim(), needsOwner],
   );
+  if (!updated[0]) return null;
   return { ...order, clearinghouse: needsOwner ? "awaiting_owner" : order.clearinghouse };
 }
 

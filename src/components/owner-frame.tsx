@@ -1,15 +1,16 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { BarChart3, Building2, ClipboardList, LayoutDashboard, Users, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
 import { Wordmark } from "@/components/logo";
 import { getBearerToken } from "@/lib/auth/client";
 
 const links = [
-  ["/owner", "Today"],
-  ["/owner/money", "Money"],
-  ["/owner/tests", "Tests"],
-  ["/owner/clients", "Clients"],
-  ["/owner/reports", "Reports"],
-  ["/owner/staffing", "Staffing"],
+  ["/owner", "Today", LayoutDashboard],
+  ["/owner/money", "Money", Wallet],
+  ["/owner/tests", "Tests", ClipboardList],
+  ["/owner/clients", "Clients", Building2],
+  ["/owner/reports", "Reports", BarChart3],
+  ["/owner/staffing", "Staffing", Users],
 ] as const;
 
 export function ownerHeaders(json = false): HeadersInit {
@@ -23,38 +24,41 @@ export function ownerHeaders(json = false): HeadersInit {
 export function OwnerFrame({ title, lede, children }: { title: string; lede: string; children: ReactNode }) {
   const path = useRouterState({ select: (state) => state.location.pathname });
   return (
-    <main className="min-h-dvh bg-background">
-      <header className="border-b border-border bg-card/70 backdrop-blur-md">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
+    <div className="min-h-dvh bg-background lg:grid lg:grid-cols-[240px_minmax(0,1fr)]">
+      <aside className="border-b border-border bg-card lg:sticky lg:top-0 lg:h-dvh lg:border-b-0 lg:border-r">
+        <div className="flex items-center justify-between px-4 py-4 lg:block">
           <Link to="/" aria-label="Home"><Wordmark compact /></Link>
-          <a href="/api/owner/reports/operations" className="text-sm text-accent hover:underline">Operations export</a>
+          <a href="/api/owner/reports/operations" className="text-sm text-accent hover:underline lg:mt-4 lg:inline-block">Operations export</a>
         </div>
-        <nav className="mx-auto flex max-w-7xl gap-2 overflow-x-auto px-4 pb-3 sm:px-6">
-          {links.map(([to, label]) => {
+        <nav className="flex gap-2 overflow-x-auto px-4 pb-3 lg:flex-col lg:overflow-visible lg:px-3 lg:pb-6">
+          {links.map(([to, label, Icon]) => {
             const active = to === "/owner" ? path === "/owner" : path === to || path.startsWith(`${to}/`);
             return (
               <Link
                 key={to}
                 to={to}
                 className={active
-                  ? "shrink-0 rounded-full border border-primary bg-primary px-3 py-1.5 text-sm text-primary-foreground"
-                  : "shrink-0 rounded-full border border-border px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground"}
+                  ? "inline-flex shrink-0 items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground"
+                  : "inline-flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"}
               >
+                <Icon className="size-4" strokeWidth={1.6} />
                 {label}
               </Link>
             );
           })}
         </nav>
-      </header>
-      <div className="mx-auto max-w-7xl space-y-8 px-4 py-10 sm:px-6">
-        <div>
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">Owner desk</p>
-          <h1 className="mt-3 text-5xl">{title}</h1>
-          <p className="mt-4 max-w-2xl text-muted-foreground">{lede}</p>
+      </aside>
+      <main className="min-w-0">
+        <div className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6 lg:py-10">
+          <div>
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">Owner desk</p>
+            <h1 className="mt-3 text-4xl sm:text-5xl">{title}</h1>
+            <p className="mt-4 max-w-2xl text-muted-foreground">{lede}</p>
+          </div>
+          {children}
         </div>
-        {children}
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }
 
