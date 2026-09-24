@@ -27,6 +27,10 @@ export const Route = createFileRoute("/api/v1/roster")({
           if (!name || !cdl) return Response.json({ error: "Driver name and CDL are required" }, { status: 400 });
           const needsTesting = body.needsTesting !== false;
           const sql = await getSql();
+          const programs = await sql.query<{ program: string }>(`select program from client_onboarding where id = $1`, [access.onboardingId]);
+          if (programs[0]?.program === "hire") {
+            return Response.json({ error: "Hire-screen accounts do not carry a monthly testing seat. Order a screen instead." }, { status: 400 });
+          }
           const before = await countBillableDrivers(sql, access.onboardingId);
           const prior = await sql.query<{
             name: string;

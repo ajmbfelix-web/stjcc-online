@@ -16,13 +16,13 @@ export const Route = createRootRoute({
       {
         name: "keywords",
         content:
-          "St. Joseph Compliance Company, SJCC, stjcc.online, DOT compliance, per-company random testing, DOT drug testing, breath alcohol, MVR, background screening, Lab Testing Solutions",
+          "St. Joseph Compliance Company, SJCC, stjcc.online, DOT compliance, fleet program, hire screen, Southeast Michigan",
       },
       { name: "author", content: SITE_NAME },
       { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1" },
       { name: "googlebot", content: "index, follow" },
       { name: "language", content: "en-US" },
-      { name: "theme-color", content: "#F7F8F6" },
+      { name: "theme-color", content: "#0C0D0C" },
       { name: "application-name", content: SITE_NAME },
       { name: "referrer", content: "strict-origin-when-cross-origin" },
     ],
@@ -38,7 +38,7 @@ export const Route = createRootRoute({
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap",
       },
     ],
   }),
@@ -57,7 +57,7 @@ function RootDocument() {
         <AuthProvider>
           <Outlet />
           <Toaster
-            theme="light"
+            theme="dark"
             position="bottom-right"
             toastOptions={{
               className:

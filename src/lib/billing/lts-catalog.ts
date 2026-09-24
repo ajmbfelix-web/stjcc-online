@@ -93,12 +93,12 @@ export const ONBOARDING_SERVICES = [
   {
     id: "nondot_testing",
     label: "Non-DOT urine and hair testing",
-    detail: "Non-DOT 5-, 9-, and 10-panel urine, and hair, ordered through LTS.",
+    detail: "Non-DOT 5-, 9-, and 10-panel urine, and hair, ordered through the testing partner.",
   },
   {
     id: "mvr",
     label: "Motor vehicle records",
-    detail: "Driving-record orders fulfilled by LTS.",
+    detail: "Driving-record orders placed with the testing partner. Not a typed date.",
   },
   {
     id: "background",
@@ -121,7 +121,7 @@ export function ltsItem(sku: string): LtsCatalogItem | null {
 
 export function assertAllowlistedSku(sku: string): LtsCatalogItem {
   const item = ltsItem(sku);
-  if (!item) throw new Error("That service is not fulfilled by Lab Testing Solutions");
+  if (!item) throw new Error("That service is not on the SJCC catalog");
   return item;
 }
 

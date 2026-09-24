@@ -10,6 +10,7 @@ export type OnboardingInput = {
   contactEmail: string;
   driverCount: number;
   services: string[];
+  program?: "fleet" | "hire";
   claimTokenHash: string;
   submittedByUserId?: string;
 };
@@ -33,8 +34,8 @@ export async function createOnboarding(input: OnboardingInput): Promise<Onboardi
   const id = `onb_${randomUUID()}`;
   const rows = await sql.query<OnboardingRecord>(
     `insert into client_onboarding
-      (id, organization_name, dot_number, contact_name, contact_email, driver_count, services, claim_token_hash, submitted_by_user_id)
-     values ($1, $2, $3, $4, lower($5), $6, $7::jsonb, $8, $9)
+      (id, organization_name, dot_number, contact_name, contact_email, driver_count, services, program, claim_token_hash, submitted_by_user_id)
+     values ($1, $2, $3, $4, lower($5), $6, $7::jsonb, $8, $9, $10)
      returning id, organization_name as "organizationName", dot_number as "dotNumber",
        contact_name as "contactName", contact_email as "contactEmail", driver_count as "driverCount",
        services, status, created_at as "createdAt"`,
@@ -46,6 +47,7 @@ export async function createOnboarding(input: OnboardingInput): Promise<Onboardi
       input.contactEmail.trim(),
       input.driverCount,
       JSON.stringify(input.services),
+      input.program ?? "fleet",
       input.claimTokenHash,
       input.submittedByUserId ?? null,
     ],

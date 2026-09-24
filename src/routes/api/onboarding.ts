@@ -5,6 +5,7 @@ import { renderSignedAgreement } from "@/lib/agreements/pdf.server";
 import { runAutomation } from "@/lib/automation/engine";
 import { newClaimToken } from "@/lib/automation/tokens";
 import { acceptAgreement, createOnboarding } from "@/lib/portal/store";
+import { refuseFleetSeats } from "@/lib/portal/programs";
 import { getStripe, stripeConfigured } from "@/lib/billing/stripe.server";
 import { assertDriverPrice } from "@/lib/billing/seats.server";
 import { resendConfigured, sendOnboardingReceipt, sendSignedAgreement } from "@/lib/notifications/resend.server";
@@ -31,6 +32,7 @@ export const Route = createFileRoute("/api/onboarding")({
         const contactName = typeof body.contactName === "string" ? body.contactName.trim() : "";
         const contactEmail = typeof body.contactEmail === "string" ? body.contactEmail.trim() : "";
         const driverCount = typeof body.driverCount === "number" ? body.driverCount : 0;
+        const program = body.program === "hire" ? "hire" : body.program === "fleet" ? "fleet" : null;
         const services = Array.isArray(body.services) ? body.services.filter((value): value is string => typeof value === "string") : [];
         const acceptance: AgreementAcceptance = {
           termsAccepted: flag(body.termsAccepted),
@@ -42,12 +44,22 @@ export const Route = createFileRoute("/api/onboarding")({
           signerTitle: typeof body.signerTitle === "string" ? body.signerTitle : "",
         };
 
-        if (!organizationName || !dotNumber || !contactName || !contactEmail || driverCount < 1) {
-          return Response.json({ error: "Organization, contact, and at least one driver are required" }, { status: 400 });
+        if (!program) return Response.json({ error: "Choose the fleet program or a hire screen" }, { status: 400 });
+        if (program === "fleet") {
+          const seatBlock = refuseFleetSeats(driverCount);
+          if (seatBlock) return Response.json({ error: seatBlock }, { status: 400 });
+          if (!organizationName || !dotNumber || !contactName || !contactEmail) {
+            return Response.json({ error: "Organization, DOT number, and contact are required" }, { status: 400 });
+          }
+        } else if (!organizationName || !contactName || !contactEmail) {
+          return Response.json({ error: "Company and contact are required" }, { status: 400 });
+        }
+        if (program === "hire" && services.includes("dot_testing")) {
+          return Response.json({ error: "A hire screen does not include a DOT random program" }, { status: 400 });
         }
         const rejected = invalidOnboardingServices(services);
         if (rejected.length) {
-          return Response.json({ error: "Choose only services Lab Testing Solutions can fulfill" }, { status: 400 });
+          return Response.json({ error: "Choose only services SJCC offers" }, { status: 400 });
         }
         const blocker = agreementBlocker(acceptance);
         if (blocker) return Response.json({ error: blocker }, { status: 400 });
@@ -56,22 +68,25 @@ export const Route = createFileRoute("/api/onboarding")({
           const claim = newClaimToken();
           const user = await getSessionUser(request.headers.get("authorization")?.replace(/^Bearer\s+/i, ""));
           const sql = await getSql();
+          const seats = program === "fleet" ? driverCount : 0;
+          const dot = program === "fleet" ? dotNumber : dotNumber || "none";
           const pending = await sql.query<{ id: string }>(
             `select id from client_onboarding
              where lower(contact_email) = lower($1) and dot_number = $2 and status = 'payment_pending'
                and created_at > now() - interval '2 days'
              order by created_at desc limit 1`,
-            [contactEmail, dotNumber],
+            [contactEmail, dot],
           );
           const onboarding = pending[0]
             ? { id: pending[0].id }
             : await createOnboarding({
                 organizationName,
-                dotNumber,
+                dotNumber: dot,
                 contactName,
                 contactEmail,
-                driverCount,
+                driverCount: seats,
                 services,
+                program,
                 claimTokenHash: claim.hash,
                 submittedByUserId: user?.id,
               });
@@ -79,9 +94,9 @@ export const Route = createFileRoute("/api/onboarding")({
             await sql.query(
               `update client_onboarding
                set organization_name = $2, contact_name = $3, driver_count = $4, services = $5::jsonb,
-                   claim_token_hash = $6, updated_at = now()
+                   program = $6, claim_token_hash = $7, dot_number = $8, updated_at = now()
                where id = $1`,
-              [onboarding.id, organizationName, contactName, driverCount, JSON.stringify(services), claim.hash],
+              [onboarding.id, organizationName, contactName, seats, JSON.stringify(services), program, claim.hash, dot],
             );
           }
           const ipAddress = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
@@ -102,6 +117,7 @@ export const Route = createFileRoute("/api/onboarding")({
               signatureName: acceptance.signatureName.trim(),
               acceptedAt: new Date(),
               ipAddress,
+              program,
             });
             await sendSignedAgreement({ signerEmail: contactEmail, organizationName, pdf });
             await sendOnboardingReceipt(contactEmail, onboarding.id);
@@ -114,21 +130,38 @@ export const Route = createFileRoute("/api/onboarding")({
           }
           await runAutomation({ reason: "onboarding", force: true });
           let checkoutUrl: string | undefined;
-          if (stripeConfigured()) {
+          const origin = process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin;
+          if (program === "hire" && !stripeConfigured()) {
+            await sql.query(
+              `update client_onboarding set status = 'active', billing_status = 'current', updated_at = now() where id = $1`,
+              [onboarding.id],
+            );
+          }
+          if (stripeConfigured() && program === "fleet") {
             await assertDriverPrice();
-            const origin = process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin;
             const session = await getStripe().checkout.sessions.create({
               mode: "subscription",
               customer_email: contactEmail,
               payment_method_collection: "always",
-              line_items: [{ price: process.env.STRIPE_PRICE_ID as string, quantity: driverCount }],
-              success_url: `${origin}/onboarding?complete=1`,
-              cancel_url: `${origin}/onboarding?cancelled=1`,
-              metadata: { onboardingId: onboarding.id, driverCount: String(driverCount) },
+              line_items: [{ price: process.env.STRIPE_PRICE_ID as string, quantity: seats }],
+              success_url: `${origin}/onboarding/fleet?complete=1`,
+              cancel_url: `${origin}/onboarding/fleet?cancelled=1`,
+              metadata: { onboardingId: onboarding.id, driverCount: String(seats), program },
               subscription_data: {
                 description: "SJCC compliance — $7 per testing driver per month, collected up front",
                 metadata: { onboardingId: onboarding.id },
               },
+            });
+            checkoutUrl = session.url ?? undefined;
+          }
+          if (stripeConfigured() && program === "hire") {
+            const session = await getStripe().checkout.sessions.create({
+              mode: "setup",
+              customer_creation: "always",
+              customer_email: contactEmail,
+              success_url: `${origin}/onboarding/hire?complete=1`,
+              cancel_url: `${origin}/onboarding/hire?cancelled=1`,
+              metadata: { onboardingId: onboarding.id, program },
             });
             checkoutUrl = session.url ?? undefined;
           }

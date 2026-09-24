@@ -1,5 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import { AGREEMENT_SECTIONS, AGREEMENT_TITLE, AGREEMENT_VERSION } from "./master.ts";
+import { AGREEMENT_TITLE, AGREEMENT_VERSION, agreementSections } from "./master.ts";
 
 export type SignedAgreement = {
   organizationName: string;
@@ -9,6 +9,7 @@ export type SignedAgreement = {
   signatureName: string;
   acceptedAt: Date;
   ipAddress?: string;
+  program?: "fleet" | "hire";
 };
 
 const PAGE_WIDTH = 612;
@@ -64,7 +65,7 @@ export async function renderSignedAgreement(input: SignedAgreement): Promise<Uin
   write(`Version ${AGREEMENT_VERSION}`, { size: 9, color: muted, gap: 14 });
   write(`This Agreement is entered into by St. Joseph Compliance Company, LLC and ${input.organizationName}.`, { gap: 12 });
 
-  for (const section of AGREEMENT_SECTIONS) {
+  for (const section of agreementSections(input.program ?? "fleet")) {
     write(section.heading, { size: 12, font: bold, gap: 6 });
     for (const paragraph of section.paragraphs) write(paragraph, { gap: 8 });
     for (const bullet of section.bullets ?? []) write(`•  ${bullet}`, { gap: 3 });

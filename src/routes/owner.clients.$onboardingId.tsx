@@ -99,7 +99,7 @@ function AccountPage() {
             <div><dt className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Covered pool</dt><dd className="mt-1 tabular-nums">{file.pace.pool}</dd></div>
             <div><dt className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Drug this year</dt><dd className="mt-1 tabular-nums">{file.pace.drugDraws} / {file.pace.drugAnnual}</dd></div>
             <div><dt className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Alcohol this year</dt><dd className="mt-1 tabular-nums">{file.pace.alcoholDraws} / {file.pace.alcoholAnnual}</dd></div>
-            <div className="sm:col-span-2"><dt className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">LTS services</dt><dd className="mt-1">{org.services.length ? org.services.join(", ") : "None selected"}</dd></div>
+            <div className="sm:col-span-2"><dt className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">Services</dt><dd className="mt-1">{org.services.length ? org.services.join(", ") : "None selected"}</dd></div>
           </dl>
           <a className="mt-4 inline-block text-sm text-accent hover:underline" href={`/api/owner/reports/audit?onboardingId=${org.id}`}>Audit packet</a>
         </section>

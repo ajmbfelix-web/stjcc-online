@@ -25,8 +25,8 @@ export async function openServiceOrder(sql: Sql, input: ServiceOrderInput): Prom
   const inserted = await sql.query<{ id: string }>(
     `insert into service_orders
       (id, onboarding_id, roster_id, channel, company_name, result_email, candidate_name, candidate_email,
-       compliance_order_id, sku, reason, amount_cents, estimated_cost_cents, status, clearinghouse)
-     values ($1, $2, $3, $4, $5, lower($6), $7, $8, $9, $10, $11, $12, $13, 'unpaid', 'not_required')
+       compliance_order_id, sku, reason, amount_cents, estimated_cost_cents, status, clearinghouse, vendor_name)
+     values ($1, $2, $3, $4, $5, lower($6), $7, $8, $9, $10, $11, $12, $13, 'unpaid', 'not_required', 'us_gateway')
      on conflict (id) do nothing
      returning id`,
     [

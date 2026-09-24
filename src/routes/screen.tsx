@@ -23,7 +23,7 @@ function Screen() {
         <section className="max-w-lg rounded-xl border border-border bg-card p-8">
           <Wordmark compact />
           <h1 className="mt-6 text-4xl">Payment received.</h1>
-          <p className="mt-4 text-sm text-muted-foreground">The test is not sent to a clinic until the laboratory accepts it. The result goes to the company email you entered.</p>
+          <p className="mt-4 text-sm text-muted-foreground">Payment is recorded. The order is not sent to a clinic until the testing partner accepts it. SJCC will not invent a barcode.</p>
           <Link to="/" className="mt-6 inline-block text-sm text-accent hover:underline">Return home</Link>
         </section>
       </main>
@@ -61,7 +61,7 @@ function Screen() {
       <div className="mx-auto max-w-3xl px-4 py-12">
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">Staffing and one-off screens</p>
         <h1 className="mt-4 text-5xl">Order the test. Pay first.</h1>
-        <p className="mt-4 max-w-xl text-muted-foreground">A recruiter can send a candidate here. The result is emailed to the staffing company. A full compliance program, with the random pool, is separate and billed at $7 per testing driver per month.</p>
+        <p className="mt-4 max-w-xl text-muted-foreground">Pay first. The order stays unpaid-to-lab until the testing partner accepts it. A full fleet program, with its own random pool, is separate and starts at two testing drivers.</p>
         <form onSubmit={(event) => void submit(event)} className="mt-8 grid gap-4 rounded-xl border border-border bg-card p-6">
           <label className="text-sm">Your name<input name="candidateName" required className="mt-1 h-11 w-full rounded-md border border-border bg-background px-3" /></label>
           <label className="text-sm">Your email<input name="candidateEmail" type="email" required className="mt-1 h-11 w-full rounded-md border border-border bg-background px-3" /></label>

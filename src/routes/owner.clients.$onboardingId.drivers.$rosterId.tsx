@@ -35,7 +35,7 @@ function DriverPage() {
 
   const driver = file?.driver;
   return (
-    <OwnerFrame title={driver?.name ?? "Driver."} lede="Identity, this company's draws, and Lab Testing Solutions orders. Medical cards and qualification files are not products on this page.">
+    <OwnerFrame title={driver?.name ?? "Driver."} lede="Identity, this company's draws, and orders placed with the testing partner. Medical cards and qualification files are not products on this page.">
       <a className="text-sm text-accent hover:underline" href={`/owner/clients/${onboardingId}`}>Back to the company</a>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
       {driver ? (
@@ -52,7 +52,7 @@ function DriverPage() {
       {file ? (
         <>
           <section className="rounded-xl border border-border bg-card">
-            <div className="border-b border-border px-5 py-4"><h2 className="text-2xl">LTS orders</h2></div>
+            <div className="border-b border-border px-5 py-4"><h2 className="text-2xl">Orders</h2></div>
             <ul className="divide-y divide-border">
               {file.orders.map((order) => (
                 <li key={order.id} className="px-5 py-3 text-sm">
@@ -66,7 +66,7 @@ function DriverPage() {
                   {order.clearinghouseDecidedAt ? <div className="mt-1 text-xs text-muted-foreground">Decision {order.clearinghouse} by {order.clearinghouseActorUserId ?? "owner"} at {String(order.clearinghouseDecidedAt).slice(0, 16).replace("T", " ")}</div> : null}
                 </li>
               ))}
-              {!file.orders.length ? <li className="px-5 py-6 text-sm text-muted-foreground">No LTS order is tied to this driver yet.</li> : null}
+              {!file.orders.length ? <li className="px-5 py-6 text-sm text-muted-foreground">No order is tied to this driver yet.</li> : null}
             </ul>
           </section>
           <section className="rounded-xl border border-border bg-card p-5">

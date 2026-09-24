@@ -18,6 +18,7 @@ describe("master agreement", () => {
     assert.match(body, /\$7\.00\) per driver who needs testing/);
     assert.match(body, /payment method on file/);
     assert.match(body, /Michigan/);
+    assert.equal(/Lab Testing Solutions|\bLTS\b/.test(body), false);
   });
 
   it("rejects a signature that skipped an acknowledgment", () => {

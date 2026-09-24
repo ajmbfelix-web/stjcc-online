@@ -26,7 +26,7 @@ type RosterDriver = {
 };
 type ClientData = {
   access: { kind: "active_client" | "pending_client" | "unassigned" | "owner"; status?: string; billingStatus?: string };
-  onboarding?: { organizationName: string; dotNumber: string; status: string; billingStatus?: string; billedDrivers?: number } | null;
+  onboarding?: { organizationName: string; dotNumber: string; status: string; billingStatus?: string; billedDrivers?: number; program?: string } | null;
   checklist?: ChecklistItem[];
   roster?: RosterDriver[];
   selections?: Array<{ id: string; testKind: string; name: string; orderStatus: string | null }>;
@@ -127,10 +127,13 @@ function ClientPortal() {
           {data?.access.kind === "unassigned" ? <OnboardingRequired /> : null}
           {data?.access.kind === "pending_client" ? <PendingState data={data} /> : null}
           {data?.access.kind === "active_client" ? (
+            data.onboarding?.program === "hire" ? (
+              <HirePortal data={data} notice={notice} onBilling={() => void openBilling()} />
+            ) : (
             <>
               <div>
                 <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">{data.onboarding?.organizationName ?? "Your organization"}</p>
-                <h1 className="mt-3 text-5xl">Compliance is running.</h1>
+                <h1 className="mt-3 text-5xl">This fleet's file.</h1>
                 <p className="mt-4 max-w-2xl text-muted-foreground">
                   Testing seats are {money(DRIVER_MONTHLY_CENTS)} per driver per month, collected before the month starts. Adding a driver beyond the seats already paid charges {money(DRIVER_MONTHLY_CENTS)} that day.
                   {typeof data.onboarding?.billedDrivers === "number"
@@ -207,13 +210,21 @@ function ClientPortal() {
                   </section>
                   <section className="rounded-xl border border-border bg-card p-5">
                     <h2 className="text-2xl">This company, this year</h2>
-                    <p className="mt-2 text-sm text-muted-foreground">Draws are only drivers at {data.onboarding?.organizationName ?? "this company"}. Other SJCC clients are a different pool.</p>
-                    <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                      <div><dt className="text-muted-foreground">Covered drivers</dt><dd className="tabular-nums">{data.history?.pace?.pool ?? 0}</dd></div>
-                      <div><dt className="text-muted-foreground">Drug selected</dt><dd className="tabular-nums">{data.history?.pace?.drugDraws ?? 0} / {data.history?.pace?.drugAnnual ?? 0}</dd></div>
-                      <div><dt className="text-muted-foreground">Alcohol selected</dt><dd className="tabular-nums">{data.history?.pace?.alcoholDraws ?? 0} / {data.history?.pace?.alcoholAnnual ?? 0}</dd></div>
-                      <div><dt className="text-muted-foreground">Quarter pace</dt><dd className="tabular-nums">{data.history?.pace?.drugExpected ?? 0} drug · {data.history?.pace?.alcoholExpected ?? 0} alcohol</dd></div>
-                    </dl>
+                    {(data.history?.pace?.pool ?? 0) < 2 ? (
+                      <p className="mt-3 text-sm text-muted-foreground">
+                        This file has fewer than two testing drivers. SJCC does not run a one-driver random pool, and it will not show a 50/10 target for a pool that is not valid.
+                      </p>
+                    ) : (
+                      <>
+                        <p className="mt-2 text-sm text-muted-foreground">Draws are only drivers at {data.onboarding?.organizationName ?? "this company"}.</p>
+                        <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                          <div><dt className="text-muted-foreground">Covered drivers</dt><dd className="tabular-nums">{data.history?.pace?.pool ?? 0}</dd></div>
+                          <div><dt className="text-muted-foreground">Drug selected</dt><dd className="tabular-nums">{data.history?.pace?.drugDraws ?? 0} / {data.history?.pace?.drugAnnual ?? 0}</dd></div>
+                          <div><dt className="text-muted-foreground">Alcohol selected</dt><dd className="tabular-nums">{data.history?.pace?.alcoholDraws ?? 0} / {data.history?.pace?.alcoholAnnual ?? 0}</dd></div>
+                          <div><dt className="text-muted-foreground">Quarter pace</dt><dd className="tabular-nums">{data.history?.pace?.drugExpected ?? 0} drug · {data.history?.pace?.alcoholExpected ?? 0} alcohol</dd></div>
+                        </dl>
+                      </>
+                    )}
                     <h3 className="mt-6 text-lg">This quarter</h3>
                     <ul className="mt-2 space-y-2 text-sm">
                       {data.selections?.map((item) => (
@@ -272,10 +283,51 @@ function ClientPortal() {
                 </div>
               </section>
             </>
+            )
           ) : null}
         </div>
       </main>
     </SignInGate>
+  );
+}
+
+function HirePortal({ data, notice, onBilling }: { data: ClientData; notice: string | null; onBilling: () => void }) {
+  return (
+    <>
+      <div>
+        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">{data.onboarding?.organizationName ?? "Your organization"}</p>
+        <h1 className="mt-3 text-5xl">Order a screen.</h1>
+        <p className="mt-4 max-w-2xl text-muted-foreground">
+          This account is a hire screen. There is no random pool and no monthly testing seat. Pay for a catalog item, then read the result here.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <Button asChild><Link to="/screen">Order a screen</Link></Button>
+          <Button type="button" variant="outline" onClick={onBilling}>Update card</Button>
+        </div>
+      </div>
+      <section className="border border-border bg-card p-5">
+        <h2 className="text-2xl">Orders</h2>
+        <ul className="mt-4 space-y-2 text-sm">
+          {data.history?.orders.map((order) => (
+            <li key={order.id} className="flex items-center justify-between gap-3">
+              <span>{order.candidateName} · {order.sku}</span>
+              <span className="text-muted-foreground">{order.status.replaceAll("_", " ")}</span>
+            </li>
+          ))}
+          {!data.history?.orders.length ? <li className="text-muted-foreground">No screens yet. The first order starts from the catalog.</li> : null}
+        </ul>
+        {notice ? <p className="mt-4 text-sm text-muted-foreground">{notice}</p> : null}
+      </section>
+      <section className="border border-border bg-card p-5">
+        <h2 className="text-2xl">Notices</h2>
+        <ul className="mt-4 space-y-2 text-sm">
+          {data.history?.notices.map((item) => (
+            <li key={item.id}>{item.subject}</li>
+          ))}
+          {!data.history?.notices.length ? <li className="text-muted-foreground">No notices yet.</li> : null}
+        </ul>
+      </section>
+    </>
   );
 }
 

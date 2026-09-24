@@ -1,34 +1,63 @@
 # St. Joseph Compliance Company
 
-> Front office for per-company DOT random testing. Lab Testing Solutions fulfills the screens.
+> Compliance office for small employers in Southeast Michigan. Two products: a fleet program and hire screens.
 
 - Legal name: St. Joseph Compliance Company (SJCC)
 - Domain: https://stjcc.online
 - Contact: contact@stjcc.online
-- Fulfillment: Lab Testing Solutions (https://partner.labtestingsolutions.com/)
-- Category: DOT / FMCSA C-TPA front office
+- Area: Flint, Genesee County, Oakland County (Waterford, Clarkston, Troy, Auburn Hills), with nationwide collection
+- Category: DOT compliance front office and prepaid hiring screens
 
 ## What we are
-SJCC keeps each employer in its own random pool and orders only what LTS can fulfill:
-- DOT urine drug panel and breath alcohol. A combined visit is two orders.
-- Non-DOT urine 5-, 9-, and 10-panel, and hair follicle, when those LTS products are ordered
-- Background: national criminal, county criminal, sex offender registry, SSN trace, employment verification, education verification
-- Motor vehicle records
-- Per-company random selections at 50% drug and 10% alcohol. A one-driver fleet is not drawn.
+SJCC sells two products.
 
-SJCC does not sell consortium membership, driver qualification files, medical-card fulfillment, or a CDL Clearinghouse query. Collection sites belong to the LTS Quest and LabCorp network. SJCC does not own them.
+Fleet program, for motor carriers with 2–20 testing drivers:
+- $7 per testing driver per month, collected up front
+- Each company is its own random pool at 50% drug and 10% alcohol
+- Prepaid DOT urine, breath alcohol as a separate order, and motor vehicle records
+- The client portal is that company's file
+
+Hire screen, for staffing firms and offices:
+- Pre-employment drug screens and background products from the published catalog
+- No random pool
+- No monthly DOT seat
+- Prepaid only
+
+A one-driver owner-operator is not a third product. That company needs a consortium. SJCC does not run a pool of one and does not take random-program money from them.
+
+Collection is at Quest and LabCorp sites through SJCC's testing partner. SJCC does not own the sites and does not give clients a laboratory login.
+
+SJCC does not sell consortium membership, driver qualification files, medical-card fulfillment, or Clearinghouse filing. SJCC does not file FMCSA Clearinghouse reports.
 
 ## Key URLs
 - Home: https://stjcc.online/
-- Onboarding: https://stjcc.online/onboarding
+- Fleets: https://stjcc.online/fleets
+- Hire screens: https://stjcc.online/hire
+- Testing: https://stjcc.online/testing
+- Motor vehicle records: https://stjcc.online/mvr
+- Pricing: https://stjcc.online/pricing
+- How it works: https://stjcc.online/how-it-works
+- Service area: https://stjcc.online/service-area
+- Contact: https://stjcc.online/contact
+- Fleet enrollment: https://stjcc.online/onboarding/fleet
+- Hire enrollment: https://stjcc.online/onboarding/hire
+- One-off screen: https://stjcc.online/screen
+- Driver notes: https://stjcc.online/learn
+- If you were selected: https://stjcc.online/learn/for-drivers
+- Random pool: https://stjcc.online/learn/random-pool
+- Collection visit: https://stjcc.online/learn/collection
+- Results and refusals: https://stjcc.online/learn/results
+- Why a test is ordered: https://stjcc.online/learn/reasons
+- Driving records: https://stjcc.online/learn/records
+- Hire screens explained: https://stjcc.online/learn/screens
+- What SJCC does not do: https://stjcc.online/learn/limits
 - Client portal: https://stjcc.online/dashboard
-- Owner desk: https://stjcc.online/owner
 - Privacy: https://stjcc.online/privacy
 - Terms: https://stjcc.online/terms
 - This file: https://stjcc.online/llms.txt
 
 ## Access and privacy
-- Public visitors can review services and start onboarding.
+- Public visitors can review both products and start the matching enrollment.
 - A client sees only their company.
 - Owner notes and lab cost are not shown to clients.
 - Results are not sent to a CRM.

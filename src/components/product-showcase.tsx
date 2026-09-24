@@ -10,7 +10,7 @@ const activity = [
 
 const metrics = [
   { label: "Companies on their own pool", value: "Per fleet", icon: Users, detail: "Not one combined draw" },
-  { label: "Orders waiting on LTS", value: "Paid, not sent", icon: CircleDashed, detail: "Visible until the lab accepts" },
+  { label: "Orders waiting on the partner", value: "Paid, not sent", icon: CircleDashed, detail: "Visible until a clinic accepts" },
   { label: "One-driver fleets", value: "Not drawn", icon: CheckCircle2, detail: "49 CFR 382.305" },
 ];
 
@@ -27,7 +27,7 @@ export function ProductShowcase() {
               A clearer view of compliance operations
             </h2>
             <p className="mt-3 max-w-2xl text-muted-foreground">
-              Each company is drawn on its own. Testing and screens are fulfilled through Lab Testing Solutions.
+              Each company is drawn on its own. Collection is at Quest and LabCorp through the testing partner.
             </p>
           </div>
           <Activity className="hidden size-9 text-accent sm:block" strokeWidth={1.4} />

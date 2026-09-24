@@ -1,5 +1,5 @@
-export const AGREEMENT_VERSION = "2026-09-22";
-export const AGREEMENT_VERSION_ID = "sjcc-msa-2026-09-22";
+export const AGREEMENT_VERSION = "2026-09-23";
+export const AGREEMENT_VERSION_ID = "sjcc-msa-2026-09-23";
 export const AGREEMENT_TITLE = "Master Service Agreement, Electronic Consent, and Payment Authorization";
 
 export type AgreementSection = {
@@ -16,10 +16,10 @@ export const AGREEMENT_SECTIONS: AgreementSection[] = [
       "By electronically signing, Client agrees to every term in this Agreement. SJCC may modify, expand, or improve its services from time to time. A change to fees takes effect only after notice to Client.",
     ],
     bullets: [
-      "DOT drug and alcohol testing, ordered through Lab Testing Solutions",
-      "Per-company random testing administration",
+      "DOT drug and alcohol testing, collected at Quest and LabCorp sites through SJCC's testing partner",
+      "Per-company random testing administration for fleets of two or more testing drivers",
       "FMCSA recordkeeping support. SJCC does not file Clearinghouse reports",
-      "Background screening coordination for LTS products",
+      "Background screening coordination",
       "Motor vehicle record orders",
       "Compliance reminders and reporting",
       "Related administrative services SJCC actually offers",
@@ -61,7 +61,7 @@ export const AGREEMENT_SECTIONS: AgreementSection[] = [
       "Company, employee, driver, and contact information",
       "Drug and alcohol testing records",
       "Clearinghouse, MVR, background screening, and other compliance records",
-      "Sharing with Lab Testing Solutions, its collection sites, laboratories, and medical review officers, background and MVR providers, government agencies, and other service providers reasonably necessary to perform the services",
+      "Sharing with SJCC's testing partner, its collection sites, laboratories, and medical review officers, background and MVR providers, government agencies, and other service providers reasonably necessary to perform the services",
     ],
   },
   {
@@ -69,7 +69,7 @@ export const AGREEMENT_SECTIONS: AgreementSection[] = [
     paragraphs: [
       "Client agrees to pay the fees for services requested or provided. Fees may include the monthly seat, random testing, drug testing, alcohol testing, background screening, MVR, collection-site, and administrative charges. SJCC does not sell consortium membership or a medical-card service.",
       "The current monthly service fee is seven U.S. dollars ($7.00) per driver who needs testing, billed monthly in advance. Stripe collects the first month before the portal opens. When Client adds a testing driver beyond the seats already paid, $7.00 for that seat is charged that day. Removing a driver does not refund the month already paid. The monthly amount then changes at the next billing period.",
-      "One-off tests are charged to the payment method on file before the order is placed. SJCC does not advance those costs. A DOT urine drug test is $65.00. A breath alcohol test is $55.00. Ordering both is two charges, not one laboratory product. A motor vehicle record is $15.00. Other published catalog rates apply to the LTS product ordered. Fees may be updated upon prior notice.",
+      "One-off tests are charged to the payment method on file before the order is placed. SJCC does not advance those costs. A DOT urine drug test is $65.00. A breath alcohol test is $55.00. Ordering both is two charges, not one laboratory product. A motor vehicle record is $15.00. Other published catalog rates apply to the product ordered. Fees may be updated upon prior notice.",
     ],
   },
   {
@@ -130,6 +130,30 @@ export const AGREEMENT_SECTIONS: AgreementSection[] = [
     ],
   },
 ];
+
+export const HIRE_BILLING_LABEL =
+  "I authorize SJCC to charge the payment method on file only for prepaid screens I order. This enrollment has no monthly testing seat and no random pool.";
+
+export const HIRE_ADDENDUM: AgreementSection[] = [
+  {
+    heading: "15. Hire-screen addendum",
+    paragraphs: [
+      "If Client enrolled through the hire-screen path, this addendum controls over any conflicting monthly-seat or random-pool term above.",
+      "SJCC will not charge a monthly testing seat and will not place Client in a random pool. Client pays only for prepaid catalog screens ordered for a named person. Collection is at Quest and LabCorp sites through SJCC's testing partner. SJCC does not sell consortium membership and does not file Clearinghouse reports.",
+    ],
+  },
+];
+
+export function agreementSections(program: "fleet" | "hire" = "fleet"): AgreementSection[] {
+  return program === "hire" ? [...AGREEMENT_SECTIONS, ...HIRE_ADDENDUM] : AGREEMENT_SECTIONS;
+}
+
+export function agreementAcknowledgments(program: "fleet" | "hire" = "fleet") {
+  if (program === "fleet") return AGREEMENT_ACKNOWLEDGMENTS;
+  return AGREEMENT_ACKNOWLEDGMENTS.map((item) =>
+    item.name === "billingAuthorized" ? { ...item, label: HIRE_BILLING_LABEL } : item,
+  );
+}
 
 export const AGREEMENT_ACKNOWLEDGMENTS = [
   { name: "termsAccepted", label: "I have read and agree to this Master Service Agreement." },

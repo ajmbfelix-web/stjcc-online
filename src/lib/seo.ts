@@ -3,7 +3,7 @@ export const SITE_NAME = "St. Joseph Compliance Company";
 export const SITE_HANDLE = "stjcc.online";
 
 export const DEFAULT_DESCRIPTION =
-  "St. Joseph Compliance Company runs per-company DOT random testing and orders drug, alcohol, background, and motor vehicle record work through Lab Testing Solutions.";
+  "St. Joseph Compliance Company runs a per-company fleet program for small motor carriers and prepaid hire screens for staffing firms. Collection is at Quest and LabCorp sites through our testing partner.";
 
 export function canonical(path = "/") {
   const normalized = path.startsWith("/") ? path : `/${path}`;
@@ -31,10 +31,10 @@ export const jsonLdGraph = {
       knowsAbout: [
         "DOT compliance",
         "Per-company random testing",
+        "Hire screening",
         "DOT urine drug testing",
         "Breath alcohol testing",
         "Motor vehicle records",
-        "Employment and education verification",
       ],
     },
     {
@@ -55,7 +55,7 @@ export const jsonLdGraph = {
       url: SITE_URL,
       provider: { "@id": `${SITE_URL}/#organization` },
       description:
-        "Per-company random testing and LTS-fulfilled drug, alcohol, background, and motor vehicle record orders. SJCC does not sell a combined multi-employer pool.",
+        "Fleet program for 2–20 testing drivers, each company its own random pool, and prepaid hire screens. SJCC does not sell a combined multi-employer pool.",
       offers: {
         "@type": "Offer",
         url: `${SITE_URL}/contact`,
@@ -71,7 +71,7 @@ export const jsonLdGraph = {
           name: "What does St. Joseph Compliance Company do?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "SJCC runs each employer's random program separately and orders drug, alcohol, background, and motor vehicle record work through Lab Testing Solutions.",
+            text: "SJCC runs a fleet program for motor carriers with at least two testing drivers, and prepaid hire screens for staffing firms and offices. Each fleet is its own random pool.",
           },
         },
         {
@@ -79,23 +79,23 @@ export const jsonLdGraph = {
           name: "How does SJCC manage compliance workflows?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "SJCC coordinates the request, scheduling, testing or screening, review, and reporting steps while keeping sensitive records restricted to authorized staff.",
+            text: "An order is paid on SJCC, the person gets instructions, collection happens at a Quest or LabCorp site, and the result returns to the SJCC portal.",
           },
         },
         {
           "@type": "Question",
-          name: "How does SJCC support nationwide collections?",
+          name: "Where are tests collected?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "DOT urine drug tests, breath alcohol, non-DOT urine panels, hair, background screens, and motor vehicle records, fulfilled through LTS.",
+            text: "At Quest and LabCorp sites through SJCC's testing partner. SJCC is based in Southeast Michigan and does not claim those clinics as its own.",
           },
         },
         {
           "@type": "Question",
-          name: "What is a digital clinic pass?",
+          name: "Does SJCC enroll a one-driver company?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "A barcode pass generated instantly and delivered to the driver by email or web so collection can start without paper chain-of-custody delay.",
+            text: "No. A one-driver company needs a consortium. SJCC does not run a pool of one and does not sell fleet seats to a single testing driver.",
           },
         },
       ],

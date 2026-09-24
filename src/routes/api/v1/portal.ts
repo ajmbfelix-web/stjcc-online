@@ -77,13 +77,14 @@ export const Route = createFileRoute("/api/v1/portal")({
             contactEmail: string;
             driverCount: number;
             services: unknown;
+            program: string;
             status: string;
             billingStatus: string;
             billedDrivers: number;
             createdAt: string;
           }>(
             `select id, organization_name as "organizationName", dot_number as "dotNumber", contact_name as "contactName",
-                    contact_email as "contactEmail", driver_count as "driverCount", services, status,
+                    contact_email as "contactEmail", driver_count as "driverCount", services, program, status,
                     billing_status as "billingStatus", billed_driver_count as "billedDrivers", created_at as "createdAt"
              from client_onboarding where id = $1`,
             [access.onboardingId],
