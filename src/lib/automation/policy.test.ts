@@ -14,6 +14,7 @@ import {
   onboardingFindings,
   ownerEscalations,
   periodKey,
+  consortiumSeed,
   drawSeed,
   planRandomDraw,
   qualificationFindings,
@@ -40,8 +41,8 @@ describe("portal access", () => {
   });
 });
 
-describe("per-company random draw", () => {
-  it("targets each company on its own pool", () => {
+describe("random draw math", () => {
+  it("hits the annual rate on a candidate list", () => {
     assert.equal(annualTarget(10, DRUG_ANNUAL_RATE), 5);
     assert.equal(annualTarget(10, ALCOHOL_ANNUAL_RATE), 1);
     assert.equal(annualTarget(7, DRUG_ANNUAL_RATE), 4);
@@ -104,6 +105,30 @@ describe("per-company random draw", () => {
       seed: drawSeed("a", "2026", 2, "drug"),
     });
     assert.equal(later.length, 0);
+  });
+
+  it("paces one combined consortium", () => {
+    assert.equal(consortiumSeed("2026", 1, "drug"), "sjcc-consortium:2026-Q1:drug");
+    const combined = [
+      ...Array.from({ length: 2 }, (_, index) => ({ id: `a${index}` })),
+      ...Array.from({ length: 2 }, (_, index) => ({ id: `b${index}` })),
+    ];
+    const drawn = planRandomDraw({
+      candidates: combined,
+      alreadySelectedIds: [],
+      rate: DRUG_ANNUAL_RATE,
+      quarter: 1,
+      seed: consortiumSeed("2026", 1, "drug"),
+    });
+    assert.equal(drawn.length, 1);
+    const yearEnd = planRandomDraw({
+      candidates: Array.from({ length: 13 }, (_, index) => ({ id: `p${index}` })),
+      alreadySelectedIds: [],
+      rate: DRUG_ANNUAL_RATE,
+      quarter: 4,
+      seed: consortiumSeed("2026", 4, "drug"),
+    });
+    assert.equal(yearEnd.length, 7);
   });
 });
 

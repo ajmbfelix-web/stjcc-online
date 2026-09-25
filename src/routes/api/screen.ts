@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { catalogItem } from "@/lib/billing/catalog";
+import { requireLiveItem } from "@/lib/billing/catalog";
 import { checkoutServiceOrder } from "@/lib/orders/charge.server";
 
 export const Route = createFileRoute("/api/screen")({
@@ -12,7 +12,12 @@ export const Route = createFileRoute("/api/screen")({
         const candidateName = typeof body.candidateName === "string" ? body.candidateName.trim() : "";
         const candidateEmail = typeof body.candidateEmail === "string" ? body.candidateEmail.trim() : "";
         const sku = typeof body.sku === "string" ? body.sku : "dot_drug";
-        if (!catalogItem(sku)) return Response.json({ error: "Unknown test" }, { status: 400 });
+        let item;
+        try {
+          item = requireLiveItem(sku);
+        } catch (error) {
+          return Response.json({ error: error instanceof Error ? error.message : "Unknown test" }, { status: 400 });
+        }
         if (!companyName || !resultEmail || !candidateName || !candidateEmail) {
           return Response.json({ error: "Your name, email, staffing company, and their results email are required" }, { status: 400 });
         }
@@ -24,7 +29,7 @@ export const Route = createFileRoute("/api/screen")({
             resultEmail,
             candidateName,
             candidateEmail,
-            sku: sku as "dot_drug",
+            sku: item.sku,
             reason: "staffing",
             origin,
           });

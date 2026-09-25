@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { catalogItem, type Sku } from "../billing/catalog.ts";
+import { catalogItem, requireLiveItem, type Sku } from "../billing/catalog.ts";
 import { recordAudit } from "../compliance/audit.ts";
 import type { Sql } from "../db.ts";
 
@@ -19,8 +19,7 @@ export type ServiceOrderInput = {
 };
 
 export async function openServiceOrder(sql: Sql, input: ServiceOrderInput): Promise<string> {
-  const item = catalogItem(input.sku);
-  if (!item) throw new Error("Unknown service");
+  const item = requireLiveItem(input.sku);
   const id = input.id ?? `svc_${randomUUID()}`;
   const inserted = await sql.query<{ id: string }>(
     `insert into service_orders

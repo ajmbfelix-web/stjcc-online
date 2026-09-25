@@ -26,7 +26,7 @@ type CompanyPace = {
 type Desk = {
   clients?: Array<{ organizationName: string; billedDrivers: number }>;
   orders?: Array<{ status: string; channel: string }>;
-  pace?: { behind: number; withPool: number };
+  consortium?: { pool: number; members: number; drugDraws: number; drugExpected: number; alcoholDraws: number; alcoholExpected: number; behind: boolean };
   companyPace?: CompanyPace[];
   quarter?: number;
 };
@@ -57,28 +57,31 @@ function ReportsPage() {
   const statusRows = [...statusCount.entries()].map(([name, count]) => ({ name, count }));
   const channelRows = [...channelCount.entries()].map(([name, count]) => ({ name, count }));
   return (
-    <OwnerFrame title="Reports." lede="Seats by client and each company's own random pace. These charts do not combine fleets and do not file a Clearinghouse report.">
-      <p className="text-sm text-muted-foreground">Quarter {desk?.quarter ?? "—"}. {desk?.pace ? `${desk.pace.behind} of ${desk.pace.withPool} companies with a standalone pool are behind their own pace.` : "Pace is per company."}</p>
+    <OwnerFrame title="Reports." lede="The random chart is the SJCC consortium. Company rows are selections on that file, not a private 50/10 program.">
+      <p className="text-sm text-muted-foreground">
+        Quarter {desk?.quarter ?? "—"}. Consortium pool {desk?.consortium?.pool ?? 0} drivers across {desk?.consortium?.members ?? 0} companies.
+        Drug {desk?.consortium?.drugDraws ?? 0} of {desk?.consortium?.drugExpected ?? 0}. Alcohol {desk?.consortium?.alcoholDraws ?? 0} of {desk?.consortium?.alcoholExpected ?? 0}.
+      </p>
       <section className="overflow-x-auto rounded-xl border border-border bg-card">
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead className="border-b border-border font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-            <tr><th className="px-4 py-3">Company</th><th className="px-4 py-3">Pool</th><th className="px-4 py-3">Drug pace</th><th className="px-4 py-3">Alcohol pace</th><th className="px-4 py-3">State</th></tr>
+            <tr><th className="px-4 py-3">Company</th><th className="px-4 py-3">Drivers</th><th className="px-4 py-3">Drug selections</th><th className="px-4 py-3">Alcohol selections</th><th className="px-4 py-3">State</th></tr>
           </thead>
           <tbody>
             {(desk?.companyPace ?? []).map((company) => (
               <tr key={company.id} className="border-b border-border">
                 <td className="px-4 py-3"><a className="text-accent hover:underline" href={`/owner/clients/${company.id}`}>{company.organizationName}</a></td>
                 <td className="px-4 py-3 tabular-nums">{company.pool}</td>
-                <td className="px-4 py-3 tabular-nums">{company.eligible ? `${company.drugDraws} / ${company.drugExpected}` : "—"}</td>
-                <td className="px-4 py-3 tabular-nums">{company.eligible ? `${company.alcoholDraws} / ${company.alcoholExpected}` : "—"}</td>
-                <td className="px-4 py-3">{company.smallFleet ? "Too small" : company.behind ? "Behind" : company.eligible ? "On pace" : "Not in random"}</td>
+                <td className="px-4 py-3 tabular-nums">{company.drugDraws}</td>
+                <td className="px-4 py-3 tabular-nums">{company.alcoholDraws}</td>
+                <td className="px-4 py-3">{company.smallFleet ? "Not in consortium" : company.eligible ? "Member" : "Not in random"}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </section>
       <div className="grid gap-4 xl:grid-cols-2">
-        <ChartCard title="Seats by client" note="Each bar is billed testing drivers, at $7 a seat.">
+        <ChartCard title="Drivers on file" note="Headcount on the company file. Membership is $299 per year, not a per-driver seat.">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={seats}>
               <XAxis dataKey="name" stroke="var(--color-subtle)" fontSize={11} interval={0} angle={-20} height={60} />

@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Wordmark } from "@/components/logo";
 import { Button } from "@/components/ui/button";
-import { CATALOG } from "@/lib/billing/catalog";
+import { liveCatalog } from "@/lib/billing/catalog";
 import { pageTitle } from "@/lib/seo";
 
 export const Route = createFileRoute("/screen")({
@@ -61,7 +61,7 @@ function Screen() {
       <div className="mx-auto max-w-3xl px-4 py-12">
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">Staffing and one-off screens</p>
         <h1 className="mt-4 text-5xl">Order the test. Pay first.</h1>
-        <p className="mt-4 max-w-xl text-muted-foreground">Pay first. The order stays unpaid-to-lab until the testing partner accepts it. A full fleet program, with its own random pool, is separate and starts at two testing drivers.</p>
+        <p className="mt-4 max-w-xl text-muted-foreground">Pay first. Only live catalog items are listed. The order stays here until the testing partner accepts it.</p>
         <form onSubmit={(event) => void submit(event)} className="mt-8 grid gap-4 rounded-xl border border-border bg-card p-6">
           <label className="text-sm">Your name<input name="candidateName" required className="mt-1 h-11 w-full rounded-md border border-border bg-background px-3" /></label>
           <label className="text-sm">Your email<input name="candidateEmail" type="email" required className="mt-1 h-11 w-full rounded-md border border-border bg-background px-3" /></label>
@@ -69,7 +69,7 @@ function Screen() {
           <label className="text-sm">Email that should receive the result<input name="resultEmail" type="email" required className="mt-1 h-11 w-full rounded-md border border-border bg-background px-3" /></label>
           <label className="text-sm">Test
             <select name="sku" className="mt-1 h-11 w-full rounded-md border border-border bg-background px-3">
-              {Object.values(CATALOG).map((item) => <option key={item.sku} value={item.sku}>{item.label} — ${(item.cents / 100).toFixed(0)}</option>)}
+              {liveCatalog().map((item) => <option key={item.sku} value={item.sku}>{item.label} — ${(item.cents / 100).toFixed(0)}</option>)}
             </select>
           </label>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}

@@ -1,5 +1,5 @@
-export const AGREEMENT_VERSION = "2026-09-23";
-export const AGREEMENT_VERSION_ID = "sjcc-msa-2026-09-23";
+export const AGREEMENT_VERSION = "2026-09-24";
+export const AGREEMENT_VERSION_ID = "sjcc-msa-2026-09-24";
 export const AGREEMENT_TITLE = "Master Service Agreement, Electronic Consent, and Payment Authorization";
 
 export type AgreementSection = {
@@ -17,9 +17,10 @@ export const AGREEMENT_SECTIONS: AgreementSection[] = [
     ],
     bullets: [
       "DOT drug and alcohol testing, collected at Quest and LabCorp sites through SJCC's testing partner",
-      "Per-company random testing administration for fleets of two or more testing drivers",
-      "FMCSA recordkeeping support. SJCC does not file Clearinghouse reports",
-      "Background screening coordination",
+      "One SJCC consortium for accepted fleets of two or more testing drivers, drawn at 50 percent drug and 10 percent alcohol of the combined pool",
+      "A private company file. Other members' drivers are not shown in Client's portal",
+      "A certificate of enrollment after the annual membership is paid and the roster is on file",
+      "FMCSA recordkeeping support. SJCC does not file Clearinghouse reports unless Client designates SJCC and that designation is accepted in the federal system",
       "Motor vehicle record orders",
       "Compliance reminders and reporting",
       "Related administrative services SJCC actually offers",
@@ -67,9 +68,9 @@ export const AGREEMENT_SECTIONS: AgreementSection[] = [
   {
     heading: "6. Fees and payment",
     paragraphs: [
-      "Client agrees to pay the fees for services requested or provided. Fees may include the monthly seat, random testing, drug testing, alcohol testing, background screening, MVR, collection-site, and administrative charges. SJCC does not sell consortium membership or a medical-card service.",
-      "The current monthly service fee is seven U.S. dollars ($7.00) per driver who needs testing, billed monthly in advance. Stripe collects the first month before the portal opens. When Client adds a testing driver beyond the seats already paid, $7.00 for that seat is charged that day. Removing a driver does not refund the month already paid. The monthly amount then changes at the next billing period.",
-      "One-off tests are charged to the payment method on file before the order is placed. SJCC does not advance those costs. A DOT urine drug test is $65.00. A breath alcohol test is $55.00. Ordering both is two charges, not one laboratory product. A motor vehicle record is $15.00. Other published catalog rates apply to the product ordered. Fees may be updated upon prior notice.",
+      "Client agrees to pay the fees for services requested or provided. Fees may include the annual consortium membership, prepaid drug testing, prepaid alcohol testing, motor vehicle records, and administrative charges. Membership is the pool, the company file, and the certificate. It is not unlimited collections. Setup is $0.00.",
+      "The fleet consortium membership is two hundred ninety-nine U.S. dollars ($299.00) per year for an accepted fleet, with unlimited testing drivers on that roster. Stripe collects the year before the portal opens. Adding or removing a testing driver does not change that annual amount and is not a separate seat charge. A company with one testing driver cannot enroll and cannot pay this fee.",
+      "Tests are charged to the payment method on file before the order is placed. SJCC does not advance those costs. A DOT urine drug test is $73.00. A DOT breath alcohol test is $63.00. Drug and breath alcohol at the same visit are $129.00. An observed or follow-up DOT drug test is $109.00. A motor vehicle record is $19.00 plus the state DMV fee. Other published catalog rates apply only to products SJCC is actually selling. Fees may be updated upon prior notice.",
     ],
   },
   {
@@ -79,11 +80,9 @@ export const AGREEMENT_SECTIONS: AgreementSection[] = [
       "If a payment fails, SJCC may retry it, suspend services, and restrict account access. Outstanding balances stay immediately due. This authorization lasts until services end and every outstanding balance is paid.",
     ],
     bullets: [
-      "The recurring $7.00 per testing driver per month, collected up front",
-      "Random drug and alcohol testing events",
-      "Post-accident, reasonable-suspicion, return-to-duty, follow-up, and pre-employment testing",
-      "Background screening, MVR, collection-site, and other third-party charges incurred for Client",
-      "Administrative and other authorized service fees",
+      "The $299.00 annual fleet consortium membership, when this enrollment is a fleet",
+      "Prepaid drug tests, alcohol tests, same-visit pairs, and motor vehicle records",
+      "Administrative and other authorized service fees that are live on the SJCC catalog",
     ],
   },
   {
@@ -132,14 +131,14 @@ export const AGREEMENT_SECTIONS: AgreementSection[] = [
 ];
 
 export const HIRE_BILLING_LABEL =
-  "I authorize SJCC to charge the payment method on file only for prepaid screens I order. This enrollment has no monthly testing seat and no random pool.";
+  "I authorize SJCC to charge the payment method on file only for prepaid screens I order. This enrollment has no annual membership and is not in the consortium.";
 
 export const HIRE_ADDENDUM: AgreementSection[] = [
   {
     heading: "15. Hire-screen addendum",
     paragraphs: [
-      "If Client enrolled through the hire-screen path, this addendum controls over any conflicting monthly-seat or random-pool term above.",
-      "SJCC will not charge a monthly testing seat and will not place Client in a random pool. Client pays only for prepaid catalog screens ordered for a named person. Collection is at Quest and LabCorp sites through SJCC's testing partner. SJCC does not sell consortium membership and does not file Clearinghouse reports.",
+      "If Client enrolled through the hire-screen path, this addendum controls over any conflicting membership or consortium term above.",
+      "SJCC will not charge the annual consortium membership and will not place Client in the random pool. Client pays only for prepaid catalog screens that are live, ordered for a named person. Collection is at Quest and LabCorp sites through SJCC's testing partner. SJCC does not file Clearinghouse reports under this addendum.",
     ],
   },
 ];
@@ -158,7 +157,7 @@ export function agreementAcknowledgments(program: "fleet" | "hire" = "fleet") {
 export const AGREEMENT_ACKNOWLEDGMENTS = [
   { name: "termsAccepted", label: "I have read and agree to this Master Service Agreement." },
   { name: "esignConsent", label: "I consent to electronic records and electronic signatures." },
-  { name: "billingAuthorized", label: "I authorize SJCC to charge the payment method on file for the recurring $7.00 per testing driver per month, collected up front, and for one-off tests, random testing events, third-party charges, and other authorized fees described in this Agreement." },
+  { name: "billingAuthorized", label: "I authorize SJCC to charge the payment method on file for the $299.00 annual fleet consortium membership, for prepaid tests, and for other authorized fees described in this Agreement. Membership is not unlimited collections." },
   { name: "complianceAcknowledged", label: "I understand that regulatory compliance remains my company's responsibility." },
   { name: "authorityConfirmed", label: "I represent that I am authorized to enter into this Agreement on behalf of the company." },
 ] as const;

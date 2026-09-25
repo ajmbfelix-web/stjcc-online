@@ -22,7 +22,7 @@ export const Route = createRootRoute({
       { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1" },
       { name: "googlebot", content: "index, follow" },
       { name: "language", content: "en-US" },
-      { name: "theme-color", content: "#0C0D0C" },
+      { name: "theme-color", content: "#F6F3EC" },
       { name: "application-name", content: SITE_NAME },
       { name: "referrer", content: "strict-origin-when-cross-origin" },
     ],
@@ -38,7 +38,7 @@ export const Route = createRootRoute({
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600;700&display=swap",
       },
     ],
   }),
@@ -57,7 +57,7 @@ function RootDocument() {
         <AuthProvider>
           <Outlet />
           <Toaster
-            theme="dark"
+            theme="light"
             position="bottom-right"
             toastOptions={{
               className:

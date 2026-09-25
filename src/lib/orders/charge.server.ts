@@ -1,4 +1,4 @@
-import { catalogItem } from "../billing/catalog.ts";
+import { requireLiveItem } from "../billing/catalog.ts";
 import { getStripe, stripeConfigured } from "../billing/stripe.server.ts";
 import type { Sql } from "../db.ts";
 import { labConfigured, getLabVendorProvider } from "../vendors/adapter.ts";
@@ -59,8 +59,13 @@ export async function openAndCollect(sql: Queryable, input: ServiceOrderInput): 
     [input.onboardingId],
   );
   const customer = orgs[0]?.customer;
-  const item = catalogItem(input.sku);
-  if (!customer || !item) return "unpaid";
+  if (!customer) return "unpaid";
+  let item;
+  try {
+    item = requireLiveItem(input.sku);
+  } catch {
+    return "unpaid";
+  }
   try {
     const stripe = getStripe();
     let invoice = await stripe.invoices.create(
@@ -103,8 +108,7 @@ export async function checkoutServiceOrder(input: ServiceOrderInput & { origin: 
   const { getSql } = await import("../db.ts");
   const sql = await getSql();
   const id = await openServiceOrder(sql, input);
-  const item = catalogItem(input.sku);
-  if (!item) throw new Error("Unknown service");
+  const item = requireLiveItem(input.sku);
   if (!stripeConfigured()) return { id, url: null };
   const session = await getStripe().checkout.sessions.create({
     mode: "payment",

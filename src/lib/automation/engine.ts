@@ -10,7 +10,7 @@ import {
   type ScreeningStatus,
   collectionFindings,
   decideLabUpdate,
-  drawSeed,
+  consortiumSeed,
   labOwnerFinding,
   needsPreEmployment,
   onboardingFindings,
@@ -18,7 +18,7 @@ import {
   periodKey,
   planRandomDraw,
   qualificationFindings,
-  shouldDrawStandalone,
+  MIN_STANDALONE_POOL,
   smallFleetFindings,
   todayUtc,
   trackingProfile,
@@ -58,6 +58,7 @@ type OrgRow = {
   billingStatus: string;
   services: unknown;
   poolMode: string;
+  program: string;
   createdAt: string | Date;
 };
 
@@ -304,7 +305,7 @@ export async function runAutomationWith(sql: Sql, options: RunOptions): Promise<
 
   const orgs = await sql.query<OrgRow>(
     `select id, organization_name as "organizationName", contact_email as "contactEmail", status,
-            billing_status as "billingStatus", services, pool_mode as "poolMode", created_at as "createdAt"
+            billing_status as "billingStatus", services, pool_mode as "poolMode", program, created_at as "createdAt"
      from client_onboarding`,
   );
   const roster = await sql.query<RosterRow>(
@@ -415,37 +416,33 @@ export async function runAutomationWith(sql: Sql, options: RunOptions): Promise<
   const quarter = Number(periodKey(now).slice(-1));
   const year = yearKey(now);
   const draws: Array<{ driver: RosterRow; kind: "drug" | "alcohol" }> = [];
+  const members: RosterRow[] = [];
   for (const org of orgs) {
     if (org.status !== "active" && org.status !== "past_due") continue;
+    if ((org.program || "fleet") === "hire") continue;
     if (!trackingProfile(servicesOf(org.services)).random) continue;
     const pool = roster.filter(
       (driver) => driver.accountId === org.id && driver.inRandomPool !== false && driver.needsTesting !== false,
     );
-    if ((org.poolMode || "standalone") !== "standalone") {
-      ensure(org.id).push({
-        dedupeKey: `owner:pool_mode:${org.id}`,
-        audience: "owner",
-        severity: "high",
-        source: "pool",
-        title: `${org.organizationName} is not on its own random pool`,
-        description: "Random draws run only when pool_mode is standalone. These drivers were not added to another company's pool.",
-      });
+    if (pool.length < MIN_STANDALONE_POOL) {
+      if (pool.length === 1) {
+        ensure(org.id).push(
+          ...smallFleetFindings({ accountId: org.id, organizationName: org.organizationName, recipient: org.contactEmail }),
+        );
+      }
       continue;
     }
-    if (!shouldDrawStandalone(pool.length, org.poolMode)) {
-      if (pool.length === 1) ensure(org.id).push(...smallFleetFindings({ accountId: org.id, organizationName: org.organizationName, recipient: org.contactEmail }));
-      continue;
-    }
-    for (const kind of ["drug", "alcohol"] as const) {
-      const chosen = planRandomDraw({
-        candidates: pool,
-        alreadySelectedIds: selected.filter((row) => row.testKind === kind && row.accountId === org.id).map((row) => row.rosterId),
-        rate: kind === "drug" ? DRUG_ANNUAL_RATE : ALCOHOL_ANNUAL_RATE,
-        quarter,
-        seed: drawSeed(org.id, year, quarter, kind),
-      });
-      for (const driver of chosen) draws.push({ driver, kind });
-    }
+    members.push(...pool);
+  }
+  for (const kind of ["drug", "alcohol"] as const) {
+    const chosen = planRandomDraw({
+      candidates: members,
+      alreadySelectedIds: selected.filter((row) => row.testKind === kind).map((row) => row.rosterId),
+      rate: kind === "drug" ? DRUG_ANNUAL_RATE : ALCOHOL_ANNUAL_RATE,
+      quarter,
+      seed: consortiumSeed(year, quarter, kind),
+    });
+    for (const driver of chosen) draws.push({ driver, kind });
   }
 
   for (const draw of draws) {

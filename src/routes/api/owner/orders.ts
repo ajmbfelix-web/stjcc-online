@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { catalogItem } from "@/lib/billing/catalog";
+import { requireLiveItem } from "@/lib/billing/catalog";
 import { getSql } from "@/lib/db";
 import { checkoutServiceOrder } from "@/lib/orders/charge.server";
 import { recordClearinghouseDecision, recordServiceResult } from "@/lib/orders/book";
@@ -37,7 +37,12 @@ export const Route = createFileRoute("/api/owner/orders")({
             return Response.json({ ok: true, decision });
           }
           const sku = typeof body.sku === "string" ? body.sku : "dot_drug";
-          if (!catalogItem(sku)) return Response.json({ error: "Unknown test" }, { status: 400 });
+          let item;
+          try {
+            item = requireLiveItem(sku);
+          } catch (error) {
+            return Response.json({ error: error instanceof Error ? error.message : "Unknown test" }, { status: 400 });
+          }
           const companyName = typeof body.companyName === "string" ? body.companyName.trim() : "";
           const resultEmail = typeof body.resultEmail === "string" ? body.resultEmail.trim() : "";
           const candidateName = typeof body.candidateName === "string" ? body.candidateName.trim() : "";
@@ -49,7 +54,7 @@ export const Route = createFileRoute("/api/owner/orders")({
             resultEmail,
             candidateName,
             candidateEmail: typeof body.candidateEmail === "string" ? body.candidateEmail : resultEmail,
-            sku: sku as "dot_drug",
+            sku: item.sku,
             reason: body.channel === "staffing" ? "staffing" : "one_off",
             origin,
             actorUserId: owner.id,

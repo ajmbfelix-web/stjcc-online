@@ -60,3 +60,40 @@ export function paceRollup(rows: readonly CompanyPace[]): { behind: number; with
   const behind = rows.filter((row) => row.behind).length;
   return { behind, withPool };
 }
+
+export type ConsortiumPace = {
+  members: number;
+  pool: number;
+  drugDraws: number;
+  drugExpected: number;
+  drugAnnual: number;
+  alcoholDraws: number;
+  alcoholExpected: number;
+  alcoholAnnual: number;
+  behind: boolean;
+  excludedSmall: number;
+};
+
+/** One combined hat. Company rows stay as private files, not as separate 50/10 programs. */
+export function consortiumPace(rows: readonly CompanyPace[], quarter: number): ConsortiumPace {
+  const members = rows.filter((row) => row.eligible);
+  const pool = members.reduce((sum, row) => sum + row.pool, 0);
+  const drugDraws = rows.reduce((sum, row) => sum + row.drugDraws, 0);
+  const alcoholDraws = rows.reduce((sum, row) => sum + row.alcoholDraws, 0);
+  const drugAnnual = annualTarget(pool, 0.5);
+  const alcoholAnnual = annualTarget(pool, 0.1);
+  const drugExpected = pool >= 2 ? paceTarget(pool, 0.5, quarter) : 0;
+  const alcoholExpected = pool >= 2 ? paceTarget(pool, 0.1, quarter) : 0;
+  return {
+    members: members.length,
+    pool,
+    drugDraws,
+    drugExpected,
+    drugAnnual,
+    alcoholDraws,
+    alcoholExpected,
+    alcoholAnnual,
+    behind: pool >= 2 && (drugDraws < drugExpected || alcoholDraws < alcoholExpected),
+    excludedSmall: rows.filter((row) => row.smallFleet).length,
+  };
+}

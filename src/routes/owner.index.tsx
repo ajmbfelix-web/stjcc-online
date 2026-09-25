@@ -22,6 +22,19 @@ type OwnerData = {
 
 type Book = { collectedThisMonthCents: number; prepaidCents: number; estimatedVendorCents: number; retainedCents: number; awaitingCharge: number; paidNotSent: number; pastDueClients: number };
 
+type Consortium = {
+  members: number;
+  pool: number;
+  drugDraws: number;
+  drugExpected: number;
+  drugAnnual: number;
+  alcoholDraws: number;
+  alcoholExpected: number;
+  alcoholAnnual: number;
+  behind: boolean;
+  excludedSmall: number;
+};
+
 type CompanyPace = {
   id: string;
   organizationName: string;
@@ -50,7 +63,7 @@ function OwnerPortal() {
   const [book, setBook] = useState<Book | null>(null);
   const [brief, setBrief] = useState<Brief | null>(null);
   const [companies, setCompanies] = useState<CompanyPace[]>([]);
-  const [rollup, setRollup] = useState({ behind: 0, withPool: 0 });
+  const [consortium, setConsortium] = useState<Consortium | null>(null);
   const [quarter, setQuarter] = useState(1);
   const [recentClients, setRecentClients] = useState<Array<{ organizationName: string }>>([]);
   const [recentDrivers, setRecentDrivers] = useState<Array<{ name: string; organizationName: string }>>([]);
@@ -70,7 +83,7 @@ function OwnerPortal() {
         book?: Book;
         brief?: Brief;
         quarter?: number;
-        pace?: { behind: number; withPool: number };
+        consortium?: Consortium;
         companyPace?: CompanyPace[];
         recentClients?: Array<{ organizationName: string }>;
         recentDrivers?: Array<{ name: string; organizationName: string }>;
@@ -78,7 +91,7 @@ function OwnerPortal() {
       setBook(desk.book ?? null);
       setBrief(desk.brief ?? null);
       setQuarter(desk.quarter ?? 1);
-      setRollup(desk.pace ?? { behind: 0, withPool: 0 });
+      setConsortium(desk.consortium ?? null);
       setCompanies(desk.companyPace ?? []);
       setRecentClients(desk.recentClients ?? []);
       setRecentDrivers(desk.recentDrivers ?? []);
@@ -111,7 +124,6 @@ function OwnerPortal() {
   }
 
   const clientKind = data?.access.kind === "active_client" || data?.access.kind === "pending_client" || data?.access.kind === "unassigned";
-  const behind = companies.filter((company) => company.behind || company.smallFleet);
 
   return (
     <SignInGate fallback={<OwnerGate />}>
@@ -119,7 +131,7 @@ function OwnerPortal() {
       {data?.access.kind === "owner" ? (
         <OwnerFrame
           title="Today."
-          lede="Exceptions only. Each company has its own random pool. A positive or a refusal stays here until you record whether it was reported."
+          lede="Exceptions only. Random pace is the combined SJCC consortium. A company file still shows only that company's drivers."
         >
           {error ? <section className="rounded-xl border border-destructive/30 bg-card p-6 text-sm text-destructive">{error}</section> : null}
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -135,8 +147,8 @@ function OwnerPortal() {
             <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <BriefStat label="New clients this week" value={String(brief.newClients)} detail={recentClients.map((item) => item.organizationName).join(", ") || "None yet"} />
               <BriefStat label="Drivers added" value={String(brief.driversAdded)} detail={recentDrivers.map((item) => `${item.name} · ${item.organizationName}`).join(", ") || "None yet"} />
-              <BriefStat label={`Q${quarter} companies behind`} value={`${rollup.behind} / ${rollup.withPool}`} detail="Each fleet is paced on its own 50% drug and 10% alcohol rate" warn={rollup.behind > 0} />
-              <BriefStat label="Small fleets blocked" value={String(companies.filter((company) => company.smallFleet).length)} detail="A one-driver pool is not a valid standalone random program" warn={companies.some((company) => company.smallFleet)} />
+              <BriefStat label={`Q${quarter} consortium`} value={consortium ? `${consortium.drugDraws}/${consortium.drugExpected} drug` : "—"} detail={consortium ? `${consortium.alcoholDraws}/${consortium.alcoholExpected} alcohol · ${consortium.pool} drivers · ${consortium.members} companies` : "Combined 50% drug and 10% alcohol"} warn={Boolean(consortium?.behind)} />
+              <BriefStat label="Not in the pool" value={String(consortium?.excludedSmall ?? companies.filter((company) => company.smallFleet).length)} detail="One testing driver is not placed in the consortium" warn={(consortium?.excludedSmall ?? 0) > 0} />
               <BriefStat label="Paid, not sent" value={String(brief.paidNotSent)} detail="Card captured. The lab has not taken the order." warn={brief.paidNotSent > 0} />
               <BriefStat label="Results still out" value={String(brief.resultsWaiting)} detail="Sent to the lab. No result recorded." />
               <BriefStat label="Positives" value={String(brief.positives)} detail="Waiting for your Clearinghouse decision" warn={brief.positives > 0} />
@@ -147,8 +159,8 @@ function OwnerPortal() {
           <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
             <div className="rounded-xl border border-border bg-card">
               <div className="border-b border-border px-5 py-4">
-                <h2 className="text-2xl">Companies behind pace</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Year-to-date draws against that company's own pool. Not a combined 50/10.</p>
+                <h2 className="text-2xl">Member files</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Selections stored on each company. The 50/10 target above is the consortium, not a private rate.</p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[640px] text-left text-sm">
@@ -161,15 +173,15 @@ function OwnerPortal() {
                     </tr>
                   </thead>
                   <tbody>
-                    {(behind.length ? behind : companies).map((company) => (
+                    {companies.map((company) => (
                       <tr key={company.id} className="border-b border-border">
                         <td className="px-4 py-3">
                           <a className="text-accent hover:underline" href={`/owner/clients/${company.id}`}>{company.organizationName}</a>
-                          {company.smallFleet ? <div className="text-xs text-destructive">Too small for a standalone pool</div> : null}
+                          {company.smallFleet ? <div className="text-xs text-destructive">Not in the consortium</div> : null}
                         </td>
                         <td className="px-4 py-3 tabular-nums">{company.pool}</td>
-                        <td className="px-4 py-3 tabular-nums">{company.eligible ? `${company.drugDraws} / ${company.drugExpected}` : "—"}</td>
-                        <td className="px-4 py-3 tabular-nums">{company.eligible ? `${company.alcoholDraws} / ${company.alcoholExpected}` : "—"}</td>
+                        <td className="px-4 py-3 tabular-nums">{company.drugDraws}</td>
+                        <td className="px-4 py-3 tabular-nums">{company.alcoholDraws}</td>
                       </tr>
                     ))}
                   </tbody>

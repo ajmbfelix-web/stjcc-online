@@ -36,7 +36,7 @@ function Privacy() {
           </p>
           <p>
             Operational data (driver identifiers, CDL numbers, screening statuses)
-            is processed to run that employer's own random program, or a hire screen, and to order drug, alcohol,
+            is processed to run that employer's place in the SJCC consortium, or a hire screen, and to order drug, alcohol,
             background, and motor vehicle record work through SJCC's testing partner. Collection sites are Quest and LabCorp locations. They are not SJCC clinics.
           </p>
           <p>

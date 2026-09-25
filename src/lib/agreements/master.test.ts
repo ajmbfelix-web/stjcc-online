@@ -15,10 +15,12 @@ const signed = {
 describe("master agreement", () => {
   it("keeps the monthly seat price and the charge authorization in the contract", () => {
     const body = masterAgreementBody();
-    assert.match(body, /\$7\.00\) per driver who needs testing/);
+    assert.match(body, /\$299\.00\) per year/);
     assert.match(body, /payment method on file/);
     assert.match(body, /Michigan/);
-    assert.equal(/Lab Testing Solutions|\bLTS\b/.test(body), false);
+    assert.match(body, /one testing driver cannot enroll/);
+    assert.match(body, /does not file Clearinghouse/);
+    assert.equal(/Lab Testing Solutions|\bLTS\b|\$7\.00/.test(body), false);
   });
 
   it("rejects a signature that skipped an acknowledgment", () => {

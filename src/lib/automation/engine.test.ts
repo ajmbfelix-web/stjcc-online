@@ -24,7 +24,7 @@ async function testDb() {
 }
 
 describe("automation engine", () => {
-  it("draws each company on its own, escalates only real exceptions, and activates billing without an owner", async () => {
+  it("draws the combined consortium, keeps each selection on the driver's company, and activates billing without an owner", async () => {
     const sql = await testDb();
     await sql.query(
       `insert into client_onboarding
@@ -56,8 +56,8 @@ describe("automation engine", () => {
     );
 
     const first = await runAutomationWith(sql, { reason: "test", now: new Date("2026-01-15T15:00:00Z") });
-    assert.equal(first.drugDraws, 2);
-    assert.equal(first.alcoholDraws, 2);
+    assert.equal(first.drugDraws, 1);
+    assert.equal(first.alcoholDraws, 1);
     assert.equal(first.preEmploymentOrders, 0);
     assert.equal(first.skipped, false);
     const crossed = await sql.query<{ count: number }>(
@@ -73,8 +73,7 @@ describe("automation engine", () => {
     const companyB = await sql.query<{ count: number }>(
       `select count(*)::int as count from random_selections where account_id = 'onb_b'`,
     );
-    assert.equal(Number(companyA[0]?.count), 2);
-    assert.equal(Number(companyB[0]?.count), 2);
+    assert.equal(Number(companyA[0]?.count) + Number(companyB[0]?.count), 2);
 
     const second = await runAutomationWith(sql, { reason: "test", now: new Date("2026-01-15T16:00:00Z") });
     assert.equal(second.drugDraws, 0);
@@ -163,7 +162,7 @@ describe("automation engine", () => {
     assert.equal(Number(exception[0]?.count), 1);
   });
 
-  it("selects five drug and one alcohol for a ten-driver company by year end, and never another company", async () => {
+  it("selects the consortium year-end total across both companies, and never stores a driver on the wrong account", async () => {
     const sql = await testDb();
     await sql.query(
       `insert into client_onboarding
@@ -186,13 +185,13 @@ describe("automation engine", () => {
       );
     }
     await runAutomationWith(sql, { reason: "test", now: new Date("2026-12-15T15:00:00Z") });
-    const ten = await sql.query<{ testKind: string; count: number }>(
-      `select test_kind as "testKind", count(*)::int as count from random_selections where account_id = 'onb_ten' group by test_kind`,
+    const totals = await sql.query<{ testKind: string; count: number }>(
+      `select test_kind as "testKind", count(*)::int as count from random_selections group by test_kind`,
     );
-    const drug = ten.find((row) => row.testKind === "drug")?.count ?? 0;
-    const alcohol = ten.find((row) => row.testKind === "alcohol")?.count ?? 0;
-    assert.equal(Number(drug), 5);
-    assert.equal(Number(alcohol), 1);
+    const drug = totals.find((row) => row.testKind === "drug")?.count ?? 0;
+    const alcohol = totals.find((row) => row.testKind === "alcohol")?.count ?? 0;
+    assert.equal(Number(drug), 7);
+    assert.equal(Number(alcohol), 2);
     const leak = await sql.query<{ count: number }>(
       `select count(*)::int as count
        from random_selections s

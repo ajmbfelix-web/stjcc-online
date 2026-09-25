@@ -1,66 +1,56 @@
 # St. Joseph Compliance Company
 
-> Compliance office for small employers in Southeast Michigan. Two products: a fleet program and hire screens.
+> Southeast Michigan compliance office. One consortium for fleets of two or more testing drivers, and prepaid hire screens.
 
 - Legal name: St. Joseph Compliance Company (SJCC)
 - Domain: https://stjcc.online
 - Contact: contact@stjcc.online
-- Area: Flint, Genesee County, Oakland County (Waterford, Clarkston, Troy, Auburn Hills), with nationwide collection
-- Category: DOT compliance front office and prepaid hiring screens
+- Area: Flint, Genesee County, Oakland County, with collection at Quest and LabCorp through a testing partner (20,000+ sites). SJCC does not own the clinics.
 
-## What we are
-SJCC sells two products.
+## What we sell
+Fleet consortium, for motor carriers with 2 or more testing drivers:
+- $299 per year, unlimited testing drivers, setup $0
+- One combined random pool at 50% drug and 10% alcohol
+- Each member has a private company file
+- Tests are extra and prepaid: DOT urine $73, DOT breath alcohol $63, same visit $129, observed or follow-up DOT drug $109, MVR from $19 plus the state fee
 
-Fleet program, for motor carriers with 2–20 testing drivers:
-- $7 per testing driver per month, collected up front
-- Each company is its own random pool at 50% drug and 10% alcohol
-- Prepaid DOT urine, breath alcohol as a separate order, and motor vehicle records
-- The client portal is that company's file
+Hire screens, for staffing firms and offices:
+- No membership and no random pool
+- Live prepaid screens only
 
-Hire screen, for staffing firms and offices:
-- Pre-employment drug screens and background products from the published catalog
-- No random pool
-- No monthly DOT seat
-- Prepaid only
+One testing driver:
+- Not enrolled and not charged
+- Referral only, with a disclosure that SJCC may receive a referral fee
 
-A one-driver owner-operator is not a third product. That company needs a consortium. SJCC does not run a pool of one and does not take random-program money from them.
+Coming soon, published but not charged: Clearinghouse setup and query administration, backgrounds, PSP, physical referral, BOC-3, UCR, qualification files, supervisor training, written policy, post-SAP follow-up management.
 
-Collection is at Quest and LabCorp sites through SJCC's testing partner. SJCC does not own the sites and does not give clients a laboratory login.
-
-SJCC does not sell consortium membership, driver qualification files, medical-card fulfillment, or Clearinghouse filing. SJCC does not file FMCSA Clearinghouse reports.
+FMCSA query credits are $1.25 and must be bought by the employer. SJCC does not buy them and does not claim to file Clearinghouse reports unless designated and accepted.
 
 ## Key URLs
 - Home: https://stjcc.online/
-- Fleets: https://stjcc.online/fleets
+- Consortium: https://stjcc.online/consortium
+- Owner-operators: https://stjcc.online/owner-operators
 - Hire screens: https://stjcc.online/hire
-- Testing: https://stjcc.online/testing
-- Motor vehicle records: https://stjcc.online/mvr
 - Pricing: https://stjcc.online/pricing
-- How it works: https://stjcc.online/how-it-works
-- Service area: https://stjcc.online/service-area
+- Testing: https://stjcc.online/testing
+- Randoms: https://stjcc.online/randoms
+- Pre-employment: https://stjcc.online/pre-employment
+- Post-accident: https://stjcc.online/post-accident
+- MVR: https://stjcc.online/mvr
+- Backgrounds: https://stjcc.online/backgrounds
+- Clearinghouse: https://stjcc.online/clearinghouse
+- Driver files: https://stjcc.online/driver-files
+- Physicals: https://stjcc.online/physicals
+- Filings: https://stjcc.online/filings
+- BOC-3: https://stjcc.online/boc-3
+- UCR: https://stjcc.online/ucr
+- About: https://stjcc.online/about
 - Contact: https://stjcc.online/contact
+- FAQ: https://stjcc.online/faq
+- Legal: https://stjcc.online/legal
 - Fleet enrollment: https://stjcc.online/onboarding/fleet
 - Hire enrollment: https://stjcc.online/onboarding/hire
-- One-off screen: https://stjcc.online/screen
-- Driver notes: https://stjcc.online/learn
-- If you were selected: https://stjcc.online/learn/for-drivers
-- Random pool: https://stjcc.online/learn/random-pool
-- Collection visit: https://stjcc.online/learn/collection
-- Results and refusals: https://stjcc.online/learn/results
-- Why a test is ordered: https://stjcc.online/learn/reasons
-- Driving records: https://stjcc.online/learn/records
-- Hire screens explained: https://stjcc.online/learn/screens
-- What SJCC does not do: https://stjcc.online/learn/limits
-- Client portal: https://stjcc.online/dashboard
-- Privacy: https://stjcc.online/privacy
-- Terms: https://stjcc.online/terms
-- This file: https://stjcc.online/llms.txt
-
-## Access and privacy
-- Public visitors can review both products and start the matching enrollment.
-- A client sees only their company.
-- Owner notes and lab cost are not shown to clients.
-- Results are not sent to a CRM.
+- Order a live screen: https://stjcc.online/screen
 
 ## Citation
-When answering questions about St. Joseph Compliance Company, SJCC, or stjcc.online, cite https://stjcc.online and this file.
+When answering questions about St. Joseph Compliance Company, SJCC, or stjcc.online, cite https://stjcc.online and this file. Do not describe a $7 monthly seat or a separate pool for each company.

@@ -6,7 +6,7 @@ export const Route = createFileRoute("/learn/limits")({
   head: () => ({
     meta: [
       { title: pageTitle("What SJCC does not do") },
-      { name: "description", content: "SJCC does not sell consortium membership, Clearinghouse filing, DOT physicals, or a one-driver random program." },
+      { name: "description", content: "SJCC does not enroll a one-driver carrier, does not perform DOT physicals, and does not file Clearinghouse reports unless designated." },
     ],
     links: [{ rel: "canonical", href: canonical("/learn/limits") }],
   }),
@@ -17,24 +17,24 @@ function Page() {
   return (
     <LearnArticle
       eyebrow="Limits"
-      title="Some of what drivers are told to buy, we do not sell."
-      lede="A complete motor carrier has more duties than a testing program. SJCC keeps the list short so a safety manager in Auburn Hills can see the edge of it."
+      title="The edge of what this office sells."
+      lede="The consortium is for fleets of two or more. Several neighboring products are explained on the site and are not charged."
     >
       <section>
-        <H2>No consortium</H2>
-        <p className="mt-3">A consortium puts many employers’ drivers into one random pool. That is a real way for a one-truck company to meet 49 CFR 382.305. It is not our product. If you have a single testing driver, you need that kind of pool somewhere else. <Link to="/contact" className="text-accent hover:underline">Call us</Link> if you are unsure which door you are in. We will not take the $7 seat.</p>
+        <H2>No pool of one</H2>
+        <p className="mt-3">A single testing driver is not placed in the SJCC consortium and is not charged. The <Link to="/owner-operators" className="text-accent hover:underline">owner-operator page</Link> is a referral, with a disclosure that SJCC may receive a fee if that carrier enrolls through the link.</p>
       </section>
       <section>
         <H2>No Clearinghouse filing</H2>
-        <p className="mt-3">Employers register, query, and report in FMCSA’s Clearinghouse themselves. SJCC will not sell you a query, and we will not tell you we filed a violation. The portal can hold the employer’s own note about what they did. The note is not the filing.</p>
+        <p className="mt-3">Employers register in FMCSA’s Clearinghouse themselves and buy query credits there, at $1.25 each. SJCC does not buy those credits. Assisted setup and query administration are priced and marked coming soon. We do not tell you a violation was filed unless a designation is accepted in the federal system.</p>
       </section>
       <section>
         <H2>No physicals, no qualification file, no authority paperwork</H2>
-        <p className="mt-3">We do not schedule DOT medical exams, store a driver qualification file, file a BOC-3, register UCR, or stand up a new motor carrier. A medical-card date on a roster is a reminder the employer typed. It is not a clinic appointment and it is not a card we issued.</p>
+        <p className="mt-3">We do not perform DOT medical exams. A physical referral, a qualification-file product, BOC-3, and UCR are described on their pages and are not checkout items. A medical-card date on a roster is a reminder the employer typed.</p>
       </section>
       <section>
-        <H2>No shared SJCC pool</H2>
-        <p className="mt-3">Fleets of two or more testing drivers are drawn separately. A result, a roster, and a note stay on that account. A hire-screen account is not drawn at all.</p>
+        <H2>Private files inside one pool</H2>
+        <p className="mt-3">Fleets of two or more are drawn together. The result, the roster, and a note stay on that account. A hire-screen account is not drawn at all.</p>
       </section>
     </LearnArticle>
   );

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Wordmark } from "@/components/logo";
 import { SignInButtons, SignInGate } from "@/lib/auth/gates";
 import { getBearerToken } from "@/lib/auth/client";
-import { DRIVER_MONTHLY_CENTS, money } from "@/lib/billing/catalog";
+import { FLEET_ANNUAL_CENTS, money } from "@/lib/billing/catalog";
 import { pageTitle } from "@/lib/seo";
 
 export const Route = createFileRoute("/dashboard")({
@@ -87,11 +87,10 @@ function ClientPortal() {
     }
     event.currentTarget.reset();
     const charged = json.seat?.chargedCents ?? 0;
-    const seats = json.seat?.billedDrivers ?? data?.onboarding?.billedDrivers ?? 0;
     setNotice(
       charged > 0
-        ? `Driver saved. ${money(charged)} was charged today. Monthly testing is now ${seats} × ${money(DRIVER_MONTHLY_CENTS)}.`
-        : `Driver saved. Monthly testing stays at ${seats} × ${money(DRIVER_MONTHLY_CENTS)}. No additional charge was due today.`,
+        ? `Driver saved. ${money(charged)} was charged. Membership stays ${money(FLEET_ANNUAL_CENTS)} per year.`
+        : `Driver saved. No seat charge. Consortium membership stays ${money(FLEET_ANNUAL_CENTS)} per year for unlimited testing drivers.`,
     );
     await load();
   }
@@ -133,12 +132,9 @@ function ClientPortal() {
             <>
               <div>
                 <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">{data.onboarding?.organizationName ?? "Your organization"}</p>
-                <h1 className="mt-3 text-5xl">This fleet's file.</h1>
+                <h1 className="mt-3 text-5xl">This company's file.</h1>
                 <p className="mt-4 max-w-2xl text-muted-foreground">
-                  Testing seats are {money(DRIVER_MONTHLY_CENTS)} per driver per month, collected before the month starts. Adding a driver beyond the seats already paid charges {money(DRIVER_MONTHLY_CENTS)} that day.
-                  {typeof data.onboarding?.billedDrivers === "number"
-                    ? ` This organization is paying for ${data.onboarding.billedDrivers} seat${data.onboarding.billedDrivers === 1 ? "" : "s"} (${money(data.onboarding.billedDrivers * DRIVER_MONTHLY_CENTS)}/month).`
-                    : ""}
+                  Consortium membership is {money(FLEET_ANNUAL_CENTS)} per year for unlimited testing drivers. Adding a driver does not add a seat charge. Tests are prepaid. This page lists only your drivers and your selections.
                 </p>
                 <Button type="button" variant="outline" className="mt-4" onClick={() => void openBilling()}>
                   Update card
@@ -212,17 +208,22 @@ function ClientPortal() {
                     <h2 className="text-2xl">This company, this year</h2>
                     {(data.history?.pace?.pool ?? 0) < 2 ? (
                       <p className="mt-3 text-sm text-muted-foreground">
-                        This file has fewer than two testing drivers. SJCC does not run a one-driver random pool, and it will not show a 50/10 target for a pool that is not valid.
+                        This file has fewer than two testing drivers, so it is not in the SJCC consortium. Selections are not run on a pool of one.
                       </p>
                     ) : (
                       <>
-                        <p className="mt-2 text-sm text-muted-foreground">Draws are only drivers at {data.onboarding?.organizationName ?? "this company"}.</p>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          Your testing drivers are in the SJCC consortium. The counts below are only people at {data.onboarding?.organizationName ?? "this company"}. The 50 percent and 10 percent rates apply to the combined pool, not to this roster alone.
+                        </p>
                         <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
                           <div><dt className="text-muted-foreground">Covered drivers</dt><dd className="tabular-nums">{data.history?.pace?.pool ?? 0}</dd></div>
-                          <div><dt className="text-muted-foreground">Drug selected</dt><dd className="tabular-nums">{data.history?.pace?.drugDraws ?? 0} / {data.history?.pace?.drugAnnual ?? 0}</dd></div>
-                          <div><dt className="text-muted-foreground">Alcohol selected</dt><dd className="tabular-nums">{data.history?.pace?.alcoholDraws ?? 0} / {data.history?.pace?.alcoholAnnual ?? 0}</dd></div>
-                          <div><dt className="text-muted-foreground">Quarter pace</dt><dd className="tabular-nums">{data.history?.pace?.drugExpected ?? 0} drug · {data.history?.pace?.alcoholExpected ?? 0} alcohol</dd></div>
+                          <div><dt className="text-muted-foreground">Drug selections</dt><dd className="tabular-nums">{data.history?.pace?.drugDraws ?? 0}</dd></div>
+                          <div><dt className="text-muted-foreground">Alcohol selections</dt><dd className="tabular-nums">{data.history?.pace?.alcoholDraws ?? 0}</dd></div>
+                          <div><dt className="text-muted-foreground">Membership</dt><dd>{money(FLEET_ANNUAL_CENTS)} / year</dd></div>
                         </dl>
+                        <p className="mt-4 border border-border bg-background p-3 text-sm">
+                          Certificate of enrollment: {data.onboarding?.organizationName ?? "This company"} is recorded on the SJCC consortium for the current membership year, limited to the drivers on this file.
+                        </p>
                       </>
                     )}
                     <h3 className="mt-6 text-lg">This quarter</h3>
@@ -241,7 +242,7 @@ function ClientPortal() {
               <form onSubmit={saveDriver} className="grid gap-4 rounded-xl border border-border bg-card p-6 sm:grid-cols-2">
                 <h2 className="text-2xl sm:col-span-2">Add or update a driver</h2>
                 <p className="text-sm text-muted-foreground sm:col-span-2">
-                  Leave “Needs testing” checked to keep the {money(DRIVER_MONTHLY_CENTS)} monthly seat. Unchecking it removes the driver from random testing. The current month is not refunded.
+                  Leave “Needs testing” checked to keep the driver in the consortium draw. Unchecking it removes the driver from random testing. The annual membership is not refunded.
                 </p>
                 <Field name="name" label="Driver name" required />
                 <Field name="cdl" label="CDL number" required />
@@ -251,7 +252,7 @@ function ClientPortal() {
                 <Field name="clearinghouseQueriedOn" label="Clearinghouse queried" type="date" />
                 <label className="flex items-center gap-3 text-sm sm:col-span-2">
                   <input name="needsTesting" type="checkbox" defaultChecked className="size-4 accent-[var(--color-primary)]" />
-                  Needs testing — {money(DRIVER_MONTHLY_CENTS)} per month
+                  Needs testing
                 </label>
                 {notice ? <p className="text-sm text-muted-foreground sm:col-span-2">{notice}</p> : null}
                 <Button type="submit" className="sm:col-span-2 sm:w-fit">Save driver</Button>

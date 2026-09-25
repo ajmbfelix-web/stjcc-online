@@ -1,9 +1,8 @@
-import { DRIVER_MONTHLY_CENTS } from "../billing/catalog.ts";
 import { bookSnapshot } from "../billing/ledger.ts";
 import { dailyBrief, type BriefOrder, type DailyBrief } from "../billing/brief.ts";
 import type { BookSnapshot } from "../billing/ledger.ts";
 import { quarterOf, yearKey } from "../automation/policy.ts";
-import { companyPace, paceRollup, type CompanyPace } from "../automation/pools.ts";
+import { companyPace, consortiumPace, paceRollup, type CompanyPace, type ConsortiumPace } from "../automation/pools.ts";
 import type { Sql } from "../db.ts";
 
 export type DeskOrder = BriefOrder & {
@@ -35,6 +34,7 @@ export type OwnerDesk = {
   brief: DailyBrief;
   quarter: number;
   pace: { behind: number; withPool: number };
+  consortium: ConsortiumPace;
   companyPace: CompanyPace[];
   orders: DeskOrder[];
   clients: DeskClient[];
@@ -119,7 +119,6 @@ export async function loadOwnerDesk(sql: Sql, now = new Date()): Promise<OwnerDe
   ]);
   const seat = seats[0] ?? { seats: 0, pastDue: 0 };
   const counts = poolRows[0] ?? { pool: 0, added: 0, clients: 0 };
-  const draws = drawRows[0] ?? { drug: 0, alcohol: 0 };
   const poolSize = new Map(poolByAccount.map((row) => [row.accountId, row.pool]));
   const drawn = new Map<string, { drug: number; alcohol: number }>();
   for (const row of drawsByAccount) {
@@ -144,19 +143,27 @@ export async function loadOwnerDesk(sql: Sql, now = new Date()): Promise<OwnerDe
     )
     .sort((left, right) => Number(right.behind) - Number(left.behind) || left.organizationName.localeCompare(right.organizationName));
   const rollup = paceRollup(companies);
+  const base = consortiumPace(companies, quarter);
+  const totals = drawRows[0] ?? { drug: 0, alcohol: 0 };
+  const consortium = {
+    ...base,
+    drugDraws: totals.drug,
+    alcoholDraws: totals.alcohol,
+    behind: base.pool >= 2 && (totals.drug < base.drugExpected || totals.alcohol < base.alcoholExpected),
+  };
   const book = bookSnapshot({
-    seatBookCents: seat.seats * DRIVER_MONTHLY_CENTS,
+    seatBookCents: 0,
     pastDueClients: seat.pastDue,
     now,
     orders,
   });
   const brief = dailyBrief({
-    pool: 0,
+    pool: consortium.pool,
     quarter,
     newClients: counts.clients,
     driversAdded: counts.added,
-    drugDraws: draws.drug,
-    alcoholDraws: draws.alcohol,
+    drugDraws: consortium.drugDraws,
+    alcoholDraws: consortium.alcoholDraws,
     pastDueCards: seat.pastDue,
     orders,
   });
@@ -165,6 +172,7 @@ export async function loadOwnerDesk(sql: Sql, now = new Date()): Promise<OwnerDe
     brief,
     quarter,
     pace: rollup,
+    consortium,
     companyPace: companies,
     orders: orders.slice(0, 200),
     clients,

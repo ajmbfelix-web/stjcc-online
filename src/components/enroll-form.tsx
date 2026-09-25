@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AGREEMENT_TITLE, AGREEMENT_VERSION, agreementAcknowledgments, agreementSections } from "@/lib/agreements/master";
 import { ONBOARDING_SERVICES } from "@/lib/billing/lts-catalog";
-import { DRIVER_MONTHLY_CENTS, money } from "@/lib/billing/catalog";
+import { FLEET_ANNUAL_CENTS, money } from "@/lib/billing/catalog";
 import { getBearerToken } from "@/lib/auth/client";
 import { refuseFleetSeats } from "@/lib/portal/programs";
 
@@ -154,8 +154,8 @@ export function EnrollForm({ program }: { program: "fleet" | "hire" }) {
         </h1>
         <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
           {program === "fleet"
-            ? `${money(DRIVER_MONTHLY_CENTS)} per testing driver per month, collected up front. Tests are extra and prepaid. A one-driver company cannot buy this program.`
-            : "No random pool and no monthly DOT seat. You pay only when you order a screen."}
+            ? `${money(FLEET_ANNUAL_CENTS)} per year for unlimited testing drivers. Tests are extra and prepaid. A one-driver company cannot buy this program.`
+            : "No consortium membership and no random pool. You pay only when you order a live screen."}
         </p>
         <form onSubmit={submit} className="mt-10 space-y-8">
           <section className="grid gap-4 border border-border bg-card p-6 sm:grid-cols-2">

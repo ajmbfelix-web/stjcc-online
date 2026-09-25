@@ -7,7 +7,7 @@ export const LEARN = [
   {
     to: "/learn/random-pool",
     title: "How a random pool works",
-    detail: "50% drug, 10% alcohol, and why the draw is this company only.",
+    detail: "50% drug, 10% alcohol, on the combined consortium.",
   },
   {
     to: "/learn/collection",
@@ -37,6 +37,6 @@ export const LEARN = [
   {
     to: "/learn/limits",
     title: "What SJCC does not do",
-    detail: "Consortium pools, Clearinghouse filing, physicals, and one-driver programs.",
+    detail: "One-driver referrals, Clearinghouse credits, physicals, and filings.",
   },
 ] as const;

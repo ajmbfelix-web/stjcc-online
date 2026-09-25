@@ -26,7 +26,7 @@ function Page() {
       </section>
       <section>
         <H2>Random</H2>
-        <p className="mt-3">Unannounced selections from the company’s own pool, spread through the year. See the pool page. The driver does not choose the day.</p>
+        <p className="mt-3">Unannounced selections from the SJCC consortium, spread through the year. The driver does not choose the day. Your company sees only its own names.</p>
       </section>
       <section>
         <H2>Post-accident</H2>

@@ -14,7 +14,7 @@ export const Route = createFileRoute("/contact")({
       {
         name: "description",
         content:
-          "Contact St. Joseph Compliance Company about a fleet program or a hire screen.",
+          "Contact St. Joseph Compliance Company about the consortium or a hire screen. One-driver carriers use the referral page.",
       },
       { name: "robots", content: "index, follow" },
     ],
@@ -41,7 +41,7 @@ function Contact() {
         </p>
         <h1 className="mt-3 text-3xl font-medium">Request a compliance consultation</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          Fleets with two or more testing drivers, and staffing firms that need a screen. A one-driver company needs a consortium. SJCC does not run a pool of one.
+          Fleets of two or more, and staffing firms that need a live screen. A one-driver company is not enrolled here.
         </p>
         <form onSubmit={onSubmit} className="mt-10 space-y-4">
           <Field label="Organization" name="org" required />

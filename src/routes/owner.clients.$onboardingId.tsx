@@ -83,7 +83,7 @@ function AccountPage() {
 
   const org = file?.organization;
   return (
-    <OwnerFrame title={org?.organizationName ?? "Account."} lede="One company. Its own pool, its own orders, its own notes. Nothing here is another fleet.">
+    <OwnerFrame title={org?.organizationName ?? "Account."} lede="One company file. Selections listed here are this company's drivers. The consortium rate is not computed on this page.">
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
       {org ? (
         <section className="rounded-xl border border-border bg-card p-5">
@@ -109,7 +109,7 @@ function AccountPage() {
           <section className="rounded-xl border border-border bg-card p-5">
             <h2 className="text-2xl">Now</h2>
             <ul className="mt-4 space-y-3 text-sm">
-              {file.now.smallFleet ? <li>This fleet is too small for its own random program. A one-driver pool is not valid under 49 CFR 382.305.</li> : null}
+              {file.now.smallFleet ? <li>This company has fewer than two testing drivers, so it is not in the SJCC consortium. A pool of one is not valid under 49 CFR 382.305.</li> : null}
               {file.now.pastDue ? <li>Billing is past due or the subscription ended.</li> : null}
               {file.now.unpaid.map((order) => <li key={order.id}>Unpaid {label(order.sku)} for {order.candidateName}.</li>)}
               {file.now.paidNotSent.map((order) => <li key={order.id}>Paid, not sent: {label(order.sku)} for {order.candidateName}.</li>)}

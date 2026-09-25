@@ -3,7 +3,7 @@ export const SITE_NAME = "St. Joseph Compliance Company";
 export const SITE_HANDLE = "stjcc.online";
 
 export const DEFAULT_DESCRIPTION =
-  "St. Joseph Compliance Company runs a per-company fleet program for small motor carriers and prepaid hire screens for staffing firms. Collection is at Quest and LabCorp sites through our testing partner.";
+  "St. Joseph Compliance Company runs one consortium for fleets of two or more testing drivers, and prepaid hire screens. $299 per year. DOT urine $73. Breath alcohol $63. Southeast Michigan, with Quest and LabCorp collection through our testing partner.";
 
 export function canonical(path = "/") {
   const normalized = path.startsWith("/") ? path : `/${path}`;
@@ -30,7 +30,7 @@ export const jsonLdGraph = {
       areaServed: "United States",
       knowsAbout: [
         "DOT compliance",
-        "Per-company random testing",
+        "Consortium random testing",
         "Hire screening",
         "DOT urine drug testing",
         "Breath alcohol testing",
@@ -55,7 +55,7 @@ export const jsonLdGraph = {
       url: SITE_URL,
       provider: { "@id": `${SITE_URL}/#organization` },
       description:
-        "Fleet program for 2–20 testing drivers, each company its own random pool, and prepaid hire screens. SJCC does not sell a combined multi-employer pool.",
+        "One consortium for fleets of two or more testing drivers, private company files, and prepaid hire screens. One-driver carriers are referred and are not charged.",
       offers: {
         "@type": "Offer",
         url: `${SITE_URL}/contact`,
@@ -71,7 +71,7 @@ export const jsonLdGraph = {
           name: "What does St. Joseph Compliance Company do?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "SJCC runs a fleet program for motor carriers with at least two testing drivers, and prepaid hire screens for staffing firms and offices. Each fleet is its own random pool.",
+            text: "SJCC runs one random consortium for motor carriers with at least two testing drivers, and prepaid hire screens for staffing firms and offices. Each member's portal shows only that company's drivers.",
           },
         },
         {
@@ -95,7 +95,7 @@ export const jsonLdGraph = {
           name: "Does SJCC enroll a one-driver company?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "No. A one-driver company needs a consortium. SJCC does not run a pool of one and does not sell fleet seats to a single testing driver.",
+            text: "No. A pool of one is not valid. SJCC refers that carrier out and does not charge a membership.",
           },
         },
       ],

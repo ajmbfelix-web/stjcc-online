@@ -7,7 +7,7 @@ import { newClaimToken } from "@/lib/automation/tokens";
 import { acceptAgreement, createOnboarding } from "@/lib/portal/store";
 import { refuseFleetSeats } from "@/lib/portal/programs";
 import { getStripe, stripeConfigured } from "@/lib/billing/stripe.server";
-import { assertDriverPrice } from "@/lib/billing/seats.server";
+import { FLEET_ANNUAL_CENTS } from "@/lib/billing/catalog";
 import { resendConfigured, sendOnboardingReceipt, sendSignedAgreement } from "@/lib/notifications/resend.server";
 import { getSessionUser } from "@/lib/auth/verify.server";
 import { getSql } from "@/lib/db";
@@ -138,17 +138,26 @@ export const Route = createFileRoute("/api/onboarding")({
             );
           }
           if (stripeConfigured() && program === "fleet") {
-            await assertDriverPrice();
             const session = await getStripe().checkout.sessions.create({
               mode: "subscription",
               customer_email: contactEmail,
               payment_method_collection: "always",
-              line_items: [{ price: process.env.STRIPE_PRICE_ID as string, quantity: seats }],
+              line_items: [
+                {
+                  quantity: 1,
+                  price_data: {
+                    currency: "usd",
+                    unit_amount: FLEET_ANNUAL_CENTS,
+                    recurring: { interval: "year" },
+                    product_data: { name: "SJCC fleet consortium membership" },
+                  },
+                },
+              ],
               success_url: `${origin}/onboarding/fleet?complete=1`,
               cancel_url: `${origin}/onboarding/fleet?cancelled=1`,
               metadata: { onboardingId: onboarding.id, driverCount: String(seats), program },
               subscription_data: {
-                description: "SJCC compliance — $7 per testing driver per month, collected up front",
+                description: "SJCC fleet consortium — $299 per year, unlimited testing drivers. Tests are extra.",
                 metadata: { onboardingId: onboarding.id },
               },
             });

@@ -1,13 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { PageIntro, PublicShell } from "@/components/public-shell";
-import { CATALOG, DRIVER_MONTHLY_CENTS, money } from "@/lib/billing/catalog";
+import { PublicShell, PageIntro } from "@/components/public-shell";
+import {
+  ADDITIONAL_DRIVER_ANNUAL_CENTS,
+  CATALOG,
+  FLEET_ANNUAL_CENTS,
+  FIRST_DRIVER_ANNUAL_CENTS,
+  money,
+  priceLabel,
+} from "@/lib/billing/catalog";
 import { canonical, pageTitle } from "@/lib/seo";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
       { title: pageTitle("Pricing") },
-      { name: "description", content: "SJCC fleet seats are $7 per testing driver per month. Hire screens pay catalog prices only. Tests are prepaid." },
+      { name: "description", content: "SJCC fleet consortium is $299 per year. DOT urine is $73. Breath alcohol is $63. Tests are extra. Coming-soon services are not charged." },
     ],
     links: [{ rel: "canonical", href: canonical("/pricing") }],
   }),
@@ -15,56 +22,53 @@ export const Route = createFileRoute("/pricing")({
 });
 
 function Pricing() {
-  const items = Object.values(CATALOG);
+  const rows = Object.values(CATALOG);
   return (
     <PublicShell>
       <PageIntro
         eyebrow="Pricing"
-        title="Two columns. No third product."
-        lede="Fleet seats are monthly. Every test and screen on either product is prepaid. Prices below are the catalog. They are not estimates."
+        title="Membership is the year. Tests are extra."
+        lede="The plan we sell is $299 per year for an accepted fleet, with unlimited testing drivers. Setup is $0. A one-driver company is not on this page."
       />
-      <section className="mx-auto grid max-w-6xl gap-4 px-4 py-12 sm:px-6 md:grid-cols-2">
-        <article className="border border-border p-6">
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent">Fleet program</p>
-          <p className="mt-4 text-4xl text-accent tabular-nums">{money(DRIVER_MONTHLY_CENTS)}</p>
-          <p className="mt-1 text-sm text-muted-foreground">per testing driver per month, collected up front. Minimum two.</p>
-          <p className="mt-4 text-sm text-muted-foreground">Plus the catalog below when a test, screen, or record is ordered.</p>
-          <Link to="/onboarding/fleet" className="mt-6 inline-block text-sm text-accent hover:underline">Enroll a fleet</Link>
-        </article>
-        <article className="border border-border p-6">
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent">Hire screen</p>
-          <p className="mt-4 text-4xl">No seat</p>
-          <p className="mt-1 text-sm text-muted-foreground">No monthly charge. No random pool. Catalog prices only.</p>
-          <p className="mt-4 text-sm text-muted-foreground">A drug test and a breath alcohol test are two charges.</p>
-          <Link to="/onboarding/hire" className="mt-6 inline-block text-sm text-accent hover:underline">Open a hire account</Link>
-        </article>
-      </section>
-      <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
-        <h2 className="text-2xl">Catalog</h2>
-        <div className="mt-4 overflow-x-auto border border-border">
-          <table className="w-full min-w-[520px] text-left text-sm">
-            <thead className="border-b border-border font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+      <div className="mx-auto max-w-3xl space-y-8 px-4 py-12 sm:px-6">
+        <section className="border border-border bg-card p-6">
+          <p className="font-mono text-xs uppercase tracking-widest text-accent">Fleet consortium</p>
+          <p className="mt-3 text-4xl tabular-nums">{priceLabel(FLEET_ANNUAL_CENTS)}</p>
+          <p className="mt-2 text-sm text-muted-foreground">Per year. Unlimited testing drivers. Tests, records, and add-ons are not included.</p>
+          <p className="mt-4 text-sm text-muted-foreground">
+            Alternate quote for 2–8 testing drivers, on request and not the checkout: {money(FIRST_DRIVER_ANNUAL_CENTS)} for the first testing driver and {money(ADDITIONAL_DRIVER_ANNUAL_CENTS)} for each additional driver that year.
+          </p>
+          <Link to="/onboarding/fleet" className="mt-4 inline-block text-sm text-accent underline">
+            Start a fleet of two or more
+          </Link>
+        </section>
+        <div className="overflow-x-auto border border-border">
+          <table className="w-full min-w-[32rem] text-left text-sm">
+            <thead className="border-b border-border bg-muted font-mono text-xs uppercase tracking-widest text-muted-foreground">
               <tr>
                 <th className="px-4 py-3">Item</th>
                 <th className="px-4 py-3">Price</th>
-                <th className="px-4 py-3">DOT</th>
+                <th className="px-4 py-3">Status</th>
               </tr>
             </thead>
             <tbody>
-              {items.map((item) => (
+              {rows.map((item) => (
                 <tr key={item.sku} className="border-b border-border last:border-0">
-                  <td className="px-4 py-3">{item.label}</td>
-                  <td className="px-4 py-3 tabular-nums text-accent">{money(item.cents)}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{item.dot ? "Yes" : "No"}</td>
+                  <td className="px-4 py-3">
+                    {item.label}
+                    {item.note ? <div className="mt-1 text-xs text-muted-foreground">{item.note}</div> : null}
+                  </td>
+                  <td className="px-4 py-3 tabular-nums">{priceLabel(item.cents)}</td>
+                  <td className="px-4 py-3">{item.live ? "Live" : "Coming soon"}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <p className="mt-4 text-sm text-muted-foreground">
-          One testing driver is not sold as a program. <Link to="/contact" className="text-accent hover:underline">Contact SJCC</Link>.
+        <p className="text-sm text-muted-foreground">
+          Coming soon means the page exists and the price is published. It is not a charge. Live drug, alcohol, same-visit, observed, and MVR orders are on <Link to="/screen" className="text-accent underline">the order screen</Link>.
         </p>
-      </section>
+      </div>
     </PublicShell>
   );
 }

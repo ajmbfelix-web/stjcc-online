@@ -71,14 +71,8 @@ export function dailyBrief(input: {
   };
 }
 
-export function briefLines(
-  brief: DailyBrief,
-  quarter: number,
-  companies?: { behind: number; withPool: number },
-): string[] {
-  const pace = companies
-    ? `Q${quarter}: ${companies.behind} of ${companies.withPool} companies with their own pool are behind the 50% drug / 10% alcohol pace. Draws are not combined across companies.`
-    : `Random pace is calculated per company. There is no combined fleet pool.`;
+export function briefLines(brief: DailyBrief, quarter: number): string[] {
+  const pace = `Q${quarter} SJCC consortium: ${brief.pool} testing drivers in the combined pool. Drug selections ${brief.drugDraws} of ${brief.drugExpected} paced. Alcohol selections ${brief.alcoholDraws} of ${brief.alcoholExpected} paced. Rates are 50% drug and 10% alcohol of that pool. One-driver companies are not in it.`;
   return [
     `New clients this week: ${brief.newClients}. Drivers added this week: ${brief.driversAdded}.`,
     pace,

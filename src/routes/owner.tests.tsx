@@ -4,7 +4,7 @@ import { OwnerFrame, ownerHeaders } from "@/components/owner-frame";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SignInGate } from "@/lib/auth/gates";
-import { CATALOG } from "@/lib/billing/catalog";
+import { liveCatalog } from "@/lib/billing/catalog";
 import { pageTitle } from "@/lib/seo";
 
 export const Route = createFileRoute("/owner/tests")({
@@ -56,7 +56,7 @@ function TestsPage() {
         <input name="resultEmail" type="email" required placeholder="Where the result goes" className="h-11 rounded-md border border-border bg-background px-3" />
         <input name="candidateName" required placeholder="Person tested" className="h-11 rounded-md border border-border bg-background px-3" />
         <select name="sku" className="h-11 rounded-md border border-border bg-background px-3">
-          {Object.values(CATALOG).map((item) => <option key={item.sku} value={item.sku}>{item.label} — ${(item.cents / 100).toFixed(0)}</option>)}
+          {liveCatalog().map((item) => <option key={item.sku} value={item.sku}>{item.label} — ${(item.cents / 100).toFixed(0)}</option>)}
         </select>
         <Button type="submit" className="sm:col-span-2 sm:w-fit">Create payment link</Button>
         {link ? <p className="text-sm text-muted-foreground sm:col-span-2 break-all">{link}</p> : null}

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { ownerInbox } from "../automation/owner.ts";
 import { getStripe, stripeConfigured } from "./stripe.server.ts";
-import { DRIVER_MONTHLY_CENTS, money, seatDelta } from "./seats.ts";
+import { money, seatDelta } from "./seats.ts";
 import { seatChangeLetter } from "../notifications/letters.ts";
 
 type Sql = {
@@ -26,12 +26,13 @@ export async function countBillableDrivers(sql: Sql, accountId: string): Promise
   return Number(rows[0]?.count ?? 0);
 }
 
+/** Retired. Fleet checkout uses an inline $299 annual price, not a monthly seat price. */
 export async function assertDriverPrice(): Promise<void> {
   const priceId = process.env.STRIPE_PRICE_ID?.trim();
-  if (!priceId) throw new Error("SJCC billing price is not configured");
+  if (!priceId) return;
   const price = await getStripe().prices.retrieve(priceId);
-  if (price.unit_amount !== DRIVER_MONTHLY_CENTS || price.currency !== "usd" || price.recurring?.interval !== "month") {
-    throw new Error("SJCC billing must stay at $7 per testing driver per month.");
+  if (price.unit_amount === 700 && price.recurring?.interval === "month") {
+    throw new Error("The $7 monthly testing seat is retired. Fleet membership is $299 per year.");
   }
 }
 
@@ -119,7 +120,7 @@ export async function applySeatChange(
         org.customer,
         input.accountId,
         plan.chargeCents,
-        `SJCC testing seat for ${input.driverName} — $7.00 paid up front`,
+        `SJCC does not add a per-driver seat. Membership stays the annual consortium fee.`,
       );
     }
     if (org.subscription && org.item && plan.nextBilled !== org.billed) {
@@ -134,8 +135,8 @@ export async function applySeatChange(
     await queueNotice(sql, input.accountId, {
       recipient: ownerInbox(),
       template: "owner_seat_unbilled",
-      subject: `Could not collect $7 for ${input.driverName}`,
-      body: `${org.organizationName} added ${input.driverName} (${input.cdl}), but Stripe is not configured in this environment. The seat was recorded and the $7 charge was not collected.`,
+      subject: `Driver added without a seat charge: ${input.driverName}`,
+      body: `${org.organizationName} added ${input.driverName} (${input.cdl}). Fleet membership is annual and unlimited. No extra seat was charged.`,
       dedupeKey: `notify:owner:seat_unbilled:${input.accountId}:${input.cdl}`,
     });
   }

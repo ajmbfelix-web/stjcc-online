@@ -132,17 +132,21 @@ export function shouldDrawStandalone(poolSize: number, poolMode = "standalone"):
   return poolMode === "standalone" && poolSize >= MIN_STANDALONE_POOL;
 }
 
+export function consortiumSeed(year: string, quarter: number, kind: "drug" | "alcohol"): string {
+  return `sjcc-consortium:${year}-Q${quarter}:${kind}`;
+}
+
 export function drawSeed(accountId: string, year: string, quarter: number, kind: "drug" | "alcohol"): string {
   return `${accountId}:${year}-Q${quarter}:${kind}`;
 }
 
 export function smallFleetFindings(input: { accountId: string; organizationName: string; recipient?: string }): Finding[] {
   const description =
-    "This fleet is too small for its own random program. A one-driver pool is not valid under 49 CFR 382.305. SJCC did not select a driver and did not add this fleet to another company's pool.";
+    "This company has one testing driver. A pool of one is not valid under 49 CFR 382.305. SJCC did not place the company in the consortium and did not select a driver.";
   return [
     clientNotice({
       dedupeKey: `client:small_fleet:${input.accountId}`,
-      title: `${input.organizationName} cannot run its own random program`,
+      title: `${input.organizationName} is not in the SJCC consortium`,
       description,
       severity: "high",
       source: "pool",
@@ -154,7 +158,7 @@ export function smallFleetFindings(input: { accountId: string; organizationName:
       audience: "owner",
       severity: "high",
       source: "pool",
-      title: `${input.organizationName} is below the standalone random minimum`,
+      title: `${input.organizationName} is below the consortium minimum`,
       description,
     },
   ];
@@ -246,7 +250,7 @@ export function activationChecklist(input: {
       label: "Billing",
       state: billingDone ? "complete" : input.billingConfigured ? "waiting" : "blocked",
       detail: billingDone
-        ? "The $7 per testing driver monthly seat is on file and was collected up front."
+        ? "The $299 annual consortium membership is on file."
         : input.billingConfigured
           ? "Finish Stripe checkout. Activation happens when payment is confirmed."
           : "SJCC billing is not configured yet. No one can activate this organization until that integration is restored.",

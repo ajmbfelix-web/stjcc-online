@@ -1,13 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { PublicShell } from "@/components/public-shell";
 import { Button } from "@/components/ui/button";
-import { CATALOG, DRIVER_MONTHLY_CENTS, money } from "@/lib/billing/catalog";
+import { CATALOG, FLEET_ANNUAL_CENTS, money, priceLabel } from "@/lib/billing/catalog";
 import { canonical, DEFAULT_DESCRIPTION, pageTitle } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: pageTitle("Fleet program and hire screens") },
+      { title: pageTitle("Fleet consortium and hire screens") },
       { name: "description", content: DEFAULT_DESCRIPTION },
       { name: "robots", content: "index, follow" },
     ],
@@ -17,43 +17,46 @@ export const Route = createFileRoute("/")({
 });
 
 const steps = [
-  ["01", "Request", "You name the person and the screen. SJCC takes the order only after it is paid."],
-  ["02", "Schedule", "The person gets instructions. Collection is at a Quest or LabCorp site."],
-  ["03", "Complete", "The collection happens on the testing partner's network. The sites are not ours."],
-  ["04", "Review", "The laboratory and medical review officer finish their part. SJCC waits for the result."],
-  ["05", "Report", "Status lands in your SJCC portal. You do not get a separate laboratory login."],
+  ["01", "Enroll", "A fleet of two or more pays the year. A hire screen skips membership. One driver is referred, not charged."],
+  ["02", "Roster", "Your drivers sit on your company file. Accepted fleets join the single SJCC pool."],
+  ["03", "Order", "A test is paid before it is sent. Coming-soon services stay on the page and off the card."],
+  ["04", "Collect", "Quest and LabCorp, through our testing partner. More than 20,000 sites. None of them are ours."],
+  ["05", "File", "The result returns to your portal. We do not file the Clearinghouse unless you designate us and that designation is accepted."],
 ];
 
 const faqs = [
-  ["Which door is mine?", "A motor carrier with two or more testing drivers uses the fleet program. A staffing firm or office that only needs a pre-employment screen uses hire screens."],
-  ["What does the $7 cover?", "The monthly seat for one testing driver in that company's own random pool. Drug tests, breath alcohol, and motor vehicle records are charged separately, before they are ordered."],
-  ["Can a one-driver company join?", "No. A pool of one is not valid. You need a consortium. SJCC does not run one, and will not take random-program money from a single driver."],
-  ["Where is the test collected?", "Quest and LabCorp sites, through our testing partner. SJCC does not own the clinics."],
+  ["What is the pool?", "Accepted fleets share one random pool at 50% drug and 10% alcohol. Your portal shows only your drivers and your selections."],
+  ["What does $299 cover?", "A year of consortium membership for unlimited testing drivers: the pool, the private file, and a certificate after the roster is on file. Tests are extra."],
+  ["Can one driver join?", "No. A pool of one is not valid. The owner-operator page is a referral, and it discloses that SJCC may receive a fee."],
+  ["Who buys query credits?", "The employer, on the FMCSA Clearinghouse, at $1.25 each. We cannot buy them."],
 ];
 
 function Home() {
-  const drug = CATALOG.dot_drug;
-  const alcohol = CATALOG.dot_alcohol;
   return (
     <PublicShell>
       <section className="relative overflow-hidden border-b border-border">
-        <div className="grid-mission pointer-events-none absolute inset-0 opacity-40" />
+        <div className="grid-paper pointer-events-none absolute inset-0 opacity-70" />
         <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
-          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">Southeast Michigan · two products</p>
-          <h1 className="mt-5 max-w-4xl text-4xl sm:text-6xl">The compliance office for small fleets and local hiring.</h1>
+          <p className="font-mono text-xs uppercase tracking-widest text-accent">Southeast Michigan · one consortium</p>
+          <h1 className="mt-5 max-w-4xl text-4xl sm:text-6xl">The compliance file for fleets that actually share a pool.</h1>
           <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Flint, Genesee, and Oakland. Each fleet is its own random pool. Hire screens stay off that program. Tests are collected at Quest and LabCorp sites through our testing partner.
+            Flint, Genesee, and Oakland. Fleets of two or more join one SJCC consortium. Hire screens stay off it. A single testing driver is referred, not enrolled.
           </p>
-          <div className="mt-10 grid gap-3 sm:grid-cols-2">
-            <Link to="/fleets" className="border border-border bg-card p-5 hover:border-accent">
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent">I have a fleet</p>
-              <p className="mt-3 text-2xl">2–20 testing drivers</p>
-              <p className="mt-2 text-sm text-muted-foreground">{money(DRIVER_MONTHLY_CENTS)} per testing driver per month, plus prepaid tests.</p>
+          <div className="mt-10 grid gap-3 lg:grid-cols-3">
+            <Link to="/consortium" className="border border-border bg-card p-5 hover:border-accent">
+              <p className="font-mono text-xs uppercase tracking-widest text-accent">Fleet</p>
+              <p className="mt-3 text-2xl">2 or more drivers</p>
+              <p className="mt-2 text-sm text-muted-foreground">{money(FLEET_ANNUAL_CENTS)} per year. Unlimited testing drivers. Tests extra.</p>
             </Link>
             <Link to="/hire" className="border border-border bg-card p-5 hover:border-accent">
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-accent">I need a hire screen</p>
+              <p className="font-mono text-xs uppercase tracking-widest text-accent">Hire screen</p>
               <p className="mt-3 text-2xl">Staffing and offices</p>
-              <p className="mt-2 text-sm text-muted-foreground">No monthly seat. No random pool. Pay for the screen you order.</p>
+              <p className="mt-2 text-sm text-muted-foreground">No membership. No random pool. Pay for the live screen you order.</p>
+            </Link>
+            <Link to="/owner-operators" className="border border-border bg-card p-5 hover:border-accent">
+              <p className="font-mono text-xs uppercase tracking-widest text-accent">One driver</p>
+              <p className="mt-3 text-2xl">Referral only</p>
+              <p className="mt-2 text-sm text-muted-foreground">Not an SJCC product. No charge on this site.</p>
             </Link>
           </div>
         </div>
@@ -62,13 +65,13 @@ function Home() {
       <section className="border-b border-border">
         <div className="mx-auto grid max-w-6xl gap-px bg-border sm:grid-cols-3">
           {[
-            ["Seat", money(DRIVER_MONTHLY_CENTS), "per testing driver / month"],
-            ["DOT urine", money(drug.cents), "prepaid, before the order"],
-            ["Breath alcohol", money(alcohol.cents), "a second order, not a bundle"],
+            ["Membership", priceLabel(FLEET_ANNUAL_CENTS), "per year · unlimited testing drivers"],
+            ["DOT urine", priceLabel(CATALOG.dot_drug.cents), "prepaid, any DOT reason"],
+            ["Breath alcohol", priceLabel(CATALOG.dot_alcohol.cents), "prepaid, separate from the drug test"],
           ].map(([label, price, detail]) => (
             <div key={label} className="bg-background px-4 py-6 sm:px-6">
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
-              <p className="mt-2 text-3xl text-accent tabular-nums">{price}</p>
+              <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">{label}</p>
+              <p className="mt-2 text-3xl tabular-nums">{price}</p>
               <p className="mt-1 text-sm text-muted-foreground">{detail}</p>
             </div>
           ))}
@@ -76,17 +79,22 @@ function Home() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">Services</p>
-        <h2 className="mt-3 text-3xl">What the office actually does</h2>
+        <p className="font-mono text-xs uppercase tracking-widest text-accent">Services</p>
+        <h2 className="mt-3 text-3xl">Live where we can fulfill it. Marked when we cannot.</h2>
         <div className="mt-8 grid gap-px border border-border bg-border sm:grid-cols-2">
           {[
-            ["/fleets", "Fleet program", "Own pool. 50% drug, 10% alcohol. Minimum two testing drivers."],
-            ["/hire", "Hire screens", "Pre-employment drug and background. No DOT seat."],
-            ["/testing", "A test visit", "Paid on SJCC, collected at Quest or LabCorp, result in the portal."],
-            ["/mvr", "Driving records", "Prepaid motor vehicle records. Not a date someone typed."],
-          ].map(([to, title, body]) => (
+            ["/testing", "DOT testing", "Live", "Urine, breath alcohol, same visit, and observed drug tests."],
+            ["/randoms", "Random pool", "Live", "One combined hat for accepted fleets. Private files stay private."],
+            ["/mvr", "Driving records", "Live", "From $19 plus the state fee. No invented 50-state table."],
+            ["/clearinghouse", "Clearinghouse", "Coming soon", "Admin prices are published. Query credits stay with the employer."],
+            ["/backgrounds", "Backgrounds", "Coming soon", "Basic, county, premium, and PSP. Contact, not a charge."],
+            ["/physicals", "Physicals", "Coming soon", "A referral only. We do not perform the exam."],
+            ["/filings", "BOC-3 and UCR", "Coming soon", "Quoted. Not filed from a checkout button."],
+            ["/driver-files", "Qualification files", "Coming soon", "The portal roster is not a DQ file."],
+          ].map(([to, title, badge, body]) => (
             <Link key={to} to={to} className="bg-card p-6 hover:bg-muted">
-              <h3 className="text-xl">{title}</h3>
+              <p className="font-mono text-xs uppercase tracking-widest text-accent">{badge}</p>
+              <h3 className="mt-2 text-xl">{title}</h3>
               <p className="mt-2 text-sm text-muted-foreground">{body}</p>
             </Link>
           ))}
@@ -95,12 +103,12 @@ function Home() {
 
       <section className="border-y border-border">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-accent">Process</p>
-          <h2 className="mt-3 text-3xl">Request, then the result comes back here.</h2>
+          <p className="font-mono text-xs uppercase tracking-widest text-accent">How it works</p>
+          <h2 className="mt-3 text-3xl">Five steps, and a hard stop at one driver.</h2>
           <ol className="mt-8 grid gap-4 sm:grid-cols-5">
             {steps.map(([step, label, detail]) => (
-              <li key={step} className="border border-border p-4">
-                <p className="font-mono text-[10px] text-accent">{step}</p>
+              <li key={step} className="border border-border bg-card p-4">
+                <p className="font-mono text-xs text-accent">{step}</p>
                 <p className="mt-3 text-lg">{label}</p>
                 <p className="mt-2 text-sm text-muted-foreground">{detail}</p>
               </li>
@@ -110,22 +118,7 @@ function Home() {
       </section>
 
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <div className="mt-12 border border-border p-6">
-          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">For the driver</p>
-          <p className="mt-3 max-w-2xl text-lg text-foreground">If the company just told you to test, start there. Not with a filing checklist.</p>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">What to bring, why you cannot postpone a random draw, what the medical review officer call is, and what this office will not sell.</p>
-          <Link to="/learn" className="mt-4 inline-block text-sm text-accent hover:underline">Read the driver notes</Link>
-        </div>
-        <div className="mt-12 border border-accent/40 p-6">
-          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">One driver</p>
-          <p className="mt-3 max-w-2xl text-lg">You need a consortium. We do not run a pool of one.</p>
-          <p className="mt-2 text-sm text-muted-foreground">SJCC will not enroll a single testing driver in a random program. Order a one-off screen, or talk to us.</p>
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-            <Button asChild variant="outline"><Link to="/contact">Contact</Link></Button>
-            <Button asChild variant="ghost"><Link to="/screen">Order a screen</Link></Button>
-          </div>
-        </div>
-        <div className="mt-12 grid gap-6 sm:grid-cols-2">
+        <div className="grid gap-8 sm:grid-cols-2">
           {faqs.map(([q, a]) => (
             <article key={q}>
               <h3 className="text-lg">{q}</h3>
@@ -134,8 +127,12 @@ function Home() {
           ))}
         </div>
         <div className="mt-12 flex flex-col gap-3 sm:flex-row">
-          <Button asChild><Link to="/onboarding">Enroll</Link></Button>
-          <Button asChild variant="outline"><Link to="/pricing">See pricing</Link></Button>
+          <Button asChild>
+            <Link to="/onboarding/fleet">Enroll a fleet</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/pricing">See pricing</Link>
+          </Button>
         </div>
       </section>
     </PublicShell>

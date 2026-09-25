@@ -1,15 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { CATALOG, DRIVER_MONTHLY_CENTS } from "./catalog.ts";
+import { CATALOG, FLEET_ANNUAL_CENTS } from "./catalog.ts";
 import { dailyBrief, isRefusal, paceTarget } from "./brief.ts";
 import { bookSnapshot } from "./ledger.ts";
 
 describe("published prices", () => {
-  it("undercuts the per-driver programs and keeps a test margin", () => {
-    assert.equal(DRIVER_MONTHLY_CENTS, 700);
-    assert.ok(CATALOG.dot_drug.cents < 6900);
+  it("uses the annual membership and keeps a test margin", () => {
+    assert.equal(FLEET_ANNUAL_CENTS, 29900);
+    assert.equal(CATALOG.dot_drug.cents, 7300);
     assert.ok(CATALOG.dot_drug.cents - CATALOG.dot_drug.estimatedCostCents >= 1500);
-    assert.ok(CATALOG.dot_alcohol.cents < 5900);
+    assert.equal(CATALOG.dot_alcohol.cents, 6300);
   });
 });
 

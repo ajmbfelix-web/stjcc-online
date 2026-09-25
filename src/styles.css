@@ -1,30 +1,30 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #0c0d0c;
-  --color-foreground: #e7e1d6;
-  --color-card: #141513;
-  --color-card-foreground: #e7e1d6;
-  --color-muted: #1c1d1a;
-  --color-muted-foreground: #9c978c;
-  --color-subtle: #6f6b62;
-  --color-border: #2c2d29;
-  --color-ring: #d06a32;
-  --color-primary: #d06a32;
-  --color-primary-foreground: #140e0a;
-  --color-secondary: #1c1d1a;
-  --color-secondary-foreground: #e7e1d6;
-  --color-accent: #d06a32;
-  --color-accent-foreground: #140e0a;
-  --color-destructive: #e15b4a;
-  --color-ok: #8fbf7a;
-  --color-warn: #e0a15a;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-background: #f6f3ec;
+  --color-foreground: #141414;
+  --color-card: #fffdf8;
+  --color-card-foreground: #141414;
+  --color-muted: #efeae1;
+  --color-muted-foreground: #5c564c;
+  --color-subtle: #8a8378;
+  --color-border: #e4dcd0;
+  --color-ring: #f7931a;
+  --color-primary: #f7931a;
+  --color-primary-foreground: #1a1206;
+  --color-secondary: #efeae1;
+  --color-secondary-foreground: #141414;
+  --color-accent: #f7931a;
+  --color-accent-foreground: #1a1206;
+  --color-destructive: #9b2c2c;
+  --color-ok: #2f6b4f;
+  --color-warn: #8a5a00;
+  --font-sans: "Public Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --radius-sm: 2px;
   --radius-md: 2px;
-  --radius-lg: 2px;
-  --radius-xl: 2px;
+  --radius-lg: 4px;
+  --radius-xl: 6px;
 }
 
 @layer base {
@@ -34,7 +34,7 @@
   }
 
   html {
-    color-scheme: dark;
+    color-scheme: light;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -57,15 +57,15 @@
   h2,
   h3 {
     font-family: var(--font-sans);
-    font-weight: 500;
-    letter-spacing: -0.035em;
-    line-height: 1.05;
+    font-weight: 560;
+    letter-spacing: -0.03em;
+    line-height: 1.08;
     text-wrap: balance;
   }
 
   h1 {
-    letter-spacing: -0.045em;
-    line-height: 0.98;
+    letter-spacing: -0.04em;
+    line-height: 1.02;
   }
 
   p {
@@ -73,20 +73,50 @@
   }
 
   ::selection {
-    background: color-mix(in oklab, var(--color-accent) 55%, transparent);
+    background: color-mix(in oklab, var(--color-accent) 45%, white);
     color: var(--color-foreground);
   }
 }
 
-.grid-mission {
+.grid-paper {
   background-image:
-    linear-gradient(to right, color-mix(in oklab, var(--color-foreground) 6%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in oklab, var(--color-foreground) 6%, transparent) 1px, transparent 1px);
+    linear-gradient(to right, color-mix(in oklab, var(--color-foreground) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--color-foreground) 5%, transparent) 1px, transparent 1px);
   background-size: 72px 72px;
 }
 
-.hairline {
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--color-foreground) 14%, transparent);
+.nav-details > summary {
+  list-style: none;
+}
+
+.nav-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.nav-details .nav-panel {
+  display: none;
+}
+
+.nav-details[open] .nav-panel {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .nav-details {
+    position: relative;
+  }
+
+  .nav-details[open] .nav-panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 50;
+    min-width: 16rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-card);
+    padding: 0.35rem;
+    box-shadow: 0 10px 30px color-mix(in oklab, var(--color-foreground) 8%, transparent);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
