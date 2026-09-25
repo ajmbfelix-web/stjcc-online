@@ -16,19 +16,22 @@ export function LearnArticle({
 }) {
   return (
     <PublicShell>
-      <PageIntro eyebrow={eyebrow} title={title} lede={lede} />
-      <article className="mx-auto max-w-3xl space-y-8 px-4 py-12 text-sm leading-relaxed text-muted-foreground sm:px-6">
-        {children}
-        <p className="border-t border-border pt-6 text-xs">
-          This is a plain description of SJCC and of public DOT rules. It is not legal advice. The employer remains responsible for compliance.
-        </p>
+      <PageIntro eyebrow={eyebrow} title={title} lede={lede} chips={["Plain language", "Not legal advice", "Employer stays responsible"]} />
+      <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+        <div className="soft-card space-y-8 p-6 text-sm leading-relaxed text-muted-foreground sm:p-8">
+          {children}
+          <p className="border-t border-border pt-6 text-xs">
+            This is a plain description of SJCC and of public DOT rules. It is not legal advice. The employer remains responsible for compliance.
+          </p>
+        </div>
       </article>
-      <nav className="border-t border-border">
-        <div className="mx-auto grid max-w-6xl gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
-          {LEARN.map((item) => (
-            <Link key={item.to} to={item.to} className="bg-background px-4 py-4 hover:bg-card">
-              <span className="block text-sm text-foreground">{item.title}</span>
-              <span className="mt-1 block text-xs text-muted-foreground">{item.detail}</span>
+      <nav className="border-t border-border" aria-label="Learn">
+        <div className="mx-auto grid max-w-7xl gap-3 px-4 py-10 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+          {LEARN.map((item, index) => (
+            <Link key={item.to} to={item.to} className="soft-card pop-card px-4 py-4">
+              <span className="font-mono text-xs text-accent">{String(index + 1).padStart(2, "0")}</span>
+              <span className="mt-2 block text-sm text-foreground">{item.title}</span>
+              <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">{item.detail}</span>
             </Link>
           ))}
         </div>

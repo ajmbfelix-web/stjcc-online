@@ -21,10 +21,10 @@
   --color-warn: #8a5a00;
   --font-sans: "Public Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --radius-sm: 2px;
-  --radius-md: 2px;
-  --radius-lg: 4px;
-  --radius-xl: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
 }
 
 @layer base {
@@ -85,12 +85,103 @@
   background-size: 72px 72px;
 }
 
+.mark {
+  background-image: linear-gradient(
+    180deg,
+    transparent 62%,
+    color-mix(in oklab, var(--color-accent) 55%, transparent) 62%
+  );
+}
+
+.soft-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 22px;
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, #141414 4%, transparent),
+    0 16px 40px color-mix(in oklab, #141414 6%, transparent);
+}
+
+.pop-card {
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+
+.pop-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in oklab, var(--color-accent) 50%, var(--color-border));
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--color-accent) 25%, transparent),
+    0 22px 48px color-mix(in oklab, #141414 10%, transparent);
+}
+
+.ink-band {
+  background: #141414;
+  color: #f6f3ec;
+}
+
+.desk {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 22px;
+  background: var(--color-card);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, #141414 4%, transparent),
+    0 28px 70px color-mix(in oklab, #141414 12%, transparent);
+}
+
+.desk-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-muted);
+  padding: 0.7rem 1rem;
+  color: var(--color-muted-foreground);
+}
+
+.desk-dots {
+  display: flex;
+  gap: 5px;
+}
+
+.desk-dots i {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-border);
+}
+
+.desk-dots i:first-child {
+  background: var(--color-accent);
+}
+
+details > summary {
+  list-style: none;
+}
+
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
 .nav-details > summary {
   list-style: none;
+  cursor: pointer;
 }
 
 .nav-details > summary::-webkit-details-marker {
   display: none;
+}
+
+.nav-details > summary svg {
+  transition: transform 160ms ease;
+}
+
+.nav-details[open] > summary svg {
+  transform: rotate(180deg);
 }
 
 .nav-details .nav-panel {
@@ -101,21 +192,61 @@
   display: block;
 }
 
+.nav-panel-card {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.45rem;
+}
+
 @media (min-width: 1024px) {
   .nav-details {
     position: relative;
   }
 
+  .nav-details:hover > summary svg,
+  .nav-details:focus-within > summary svg {
+    transform: rotate(180deg);
+  }
+
+  .nav-details:hover .nav-panel,
+  .nav-details:focus-within .nav-panel,
   .nav-details[open] .nav-panel {
+    display: block;
+  }
+
+  .nav-details .nav-panel {
     position: absolute;
     top: 100%;
     left: 0;
     z-index: 50;
-    min-width: 16rem;
+    width: min(28rem, 72vw);
+    padding-top: 0.55rem;
+    background: transparent;
+  }
+
+  .nav-details.nav-wide .nav-panel {
+    width: min(44rem, 78vw);
+  }
+
+  .nav-details.nav-wide .nav-panel-card {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .nav-kicker {
+    grid-column: 1 / -1;
+  }
+
+  .nav-panel-card {
     border: 1px solid var(--color-border);
+    border-radius: 18px;
     background: var(--color-card);
-    padding: 0.35rem;
-    box-shadow: 0 10px 30px color-mix(in oklab, var(--color-foreground) 8%, transparent);
+    padding: 0.55rem;
+    box-shadow: 0 24px 60px color-mix(in oklab, #141414 16%, transparent);
+  }
+
+  .nav-details:nth-last-child(-n + 2) .nav-panel {
+    left: auto;
+    right: 0;
   }
 }
 
@@ -126,5 +257,9 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .pop-card:hover {
+    transform: none;
   }
 }

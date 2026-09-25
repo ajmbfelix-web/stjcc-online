@@ -49,7 +49,7 @@ export type { Topic, StepIcon };
 
 function PriceRows({ skus, soon }: { skus: readonly Sku[]; soon?: boolean }) {
   return (
-    <div className="mt-4 overflow-x-auto border border-border">
+    <div className="mt-5 overflow-x-auto rounded-2xl border border-border">
       <table className="w-full min-w-[28rem] text-left text-sm">
         <thead className="border-b border-border bg-muted font-mono text-xs uppercase tracking-widest text-muted-foreground">
           <tr>
@@ -82,122 +82,166 @@ function PriceRows({ skus, soon }: { skus: readonly Sku[]; soon?: boolean }) {
 }
 
 export function TopicView({ topic }: { topic: Topic }) {
+  const chips = topic.referral
+    ? ["No checkout", "Referral disclosed", "Pool of one refused"]
+    : topic.contactOnly
+      ? ["Price published", "Card not charged", "Ask the office"]
+      : ["Live where marked", "Tests prepaid", "Michigan office"];
+
   return (
     <PublicShell>
-      <PageIntro eyebrow={topic.eyebrow} title={topic.title} lede={topic.lede} />
-      <article className="mx-auto max-w-3xl space-y-10 px-4 py-12 sm:px-6">
-        {topic.blocks.map((block) => (
-          <section key={block.h ?? block.p?.[0]}>
-            {block.h ? <h2 className="text-2xl">{block.h}</h2> : null}
-            {block.p?.map((paragraph) => (
-              <p key={paragraph} className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
-                {paragraph}
-              </p>
+      <PageIntro eyebrow={topic.eyebrow} title={topic.title} lede={topic.lede} chips={chips} />
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+        <aside className="order-1 space-y-4 lg:sticky lg:top-24 lg:order-2">
+          <div className="soft-card p-5">
+            <p className="font-mono text-xs uppercase tracking-widest text-accent">
+              {topic.referral ? "Stop" : topic.contactOnly ? "Not a charge" : "Next"}
+            </p>
+            <p className="mt-3 text-3xl">
+              {topic.referral ? "Referral only" : topic.contactOnly ? "Talk first" : "Enroll or order"}
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              {topic.referral
+                ? "A one-driver carrier is not enrolled and is not charged on this site."
+                : topic.contactOnly
+                  ? "The price can be published while checkout stays closed."
+                  : "Membership is the year. Each test is a separate prepaid order."}
+            </p>
+            <div className="mt-5 flex flex-col gap-2">
+              {topic.referral ? (
+                <Button asChild className="rounded-full">
+                  <a href={REFERRAL_URL} rel="noopener noreferrer">Continue to the referral</a>
+                </Button>
+              ) : topic.contactOnly ? (
+                <Button asChild className="rounded-full">
+                  <Link to="/contact">Contact</Link>
+                </Button>
+              ) : topic.orderHref ? (
+                <Button asChild className="rounded-full">
+                  <a href={topic.orderHref}>Order a live test</a>
+                </Button>
+              ) : (
+                <Button asChild className="rounded-full">
+                  <Link to="/onboarding">Start enrollment</Link>
+                </Button>
+              )}
+              <Button asChild variant="outline" className="rounded-full bg-card">
+                <Link to="/pricing">See the shelf</Link>
+              </Button>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              ["$299", "year"],
+              ["$0", "setup"],
+              ["50/10", "pool"],
+            ].map(([value, label]) => (
+              <div key={label} className="rounded-2xl border border-border bg-card px-2 py-3 text-center">
+                <p className="text-sm font-medium tabular-nums">{value}</p>
+                <p className="mt-1 font-mono text-xs uppercase tracking-widest text-muted-foreground">{label}</p>
+              </div>
             ))}
-            {block.list ? (
-              <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-foreground">
-                {block.list.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            ) : null}
-            {block.prices ? <PriceRows skus={block.prices} soon={block.soon} /> : null}
-          </section>
-        ))}
-        {topic.steps?.length ? (
-          <section>
-            <h2 className="text-2xl">How it moves</h2>
-            <ol className="mt-4 space-y-3">
-              {topic.steps.map((step, index) => {
-                const Icon = ICONS[step.icon];
-                return (
-                  <li key={step.title} className="flex gap-3 border border-border bg-card p-4">
-                    <span className="flex size-11 shrink-0 items-center justify-center bg-muted text-accent">
-                      <Icon className="size-5" strokeWidth={1.75} aria-hidden />
-                    </span>
-                    <div>
-                      <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">0{index + 1}</p>
-                      <p className="mt-1 font-medium">{step.title}</p>
-                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-          </section>
-        ) : null}
-        {topic.faqs?.length ? (
-          <section>
-            <h2 className="text-2xl">Questions</h2>
-            <div className="mt-4 divide-y divide-border border border-border bg-card">
+          </div>
+        </aside>
+        <article className="order-2 space-y-5 lg:order-1">
+          {topic.blocks.map((block) => (
+            <section key={block.h ?? block.p?.[0]} className="soft-card p-5 sm:p-7">
+              {block.h ? <h2 className="text-2xl sm:text-3xl">{block.h}</h2> : null}
+              {block.p?.map((paragraph) => (
+                <p key={paragraph} className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  {paragraph}
+                </p>
+              ))}
+              {block.list ? (
+                <ul className="mt-4 space-y-2">
+                  {block.list.map((item) => (
+                    <li key={item} className="flex gap-3 text-sm leading-relaxed">
+                      <span className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {block.prices ? <PriceRows skus={block.prices} soon={block.soon} /> : null}
+            </section>
+          ))}
+          {topic.steps?.length ? (
+            <section>
+              <h2 className="text-2xl sm:text-3xl">How it moves</h2>
+              <ol className="mt-4 grid gap-3 sm:grid-cols-2">
+                {topic.steps.map((step, index) => {
+                  const Icon = ICONS[step.icon];
+                  return (
+                    <li key={step.title} className="soft-card flex gap-3 p-4">
+                      <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-muted text-foreground">
+                        <Icon className="size-5" strokeWidth={1.75} aria-hidden />
+                      </span>
+                      <div>
+                        <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">0{index + 1}</p>
+                        <p className="mt-1 font-medium">{step.title}</p>
+                        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            </section>
+          ) : null}
+          {topic.faqs?.length ? (
+            <section className="space-y-3">
+              <h2 className="text-2xl sm:text-3xl">Questions</h2>
               {topic.faqs.map((faq) => (
-                <details key={faq.q} className="group px-4 py-3">
-                  <summary className="cursor-pointer text-sm font-medium">{faq.q}</summary>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{faq.a}</p>
+                <details key={faq.q} className="soft-card group px-5 py-4">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-medium">
+                    {faq.q}
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-lg leading-none group-open:bg-foreground group-open:text-background">+</span>
+                  </summary>
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{faq.a}</p>
                 </details>
               ))}
-            </div>
-          </section>
-        ) : null}
-        {topic.cites?.length ? (
-          <section>
-            <h2 className="text-2xl">Read the rule, not a summary</h2>
-            <ul className="mt-4 space-y-2 text-sm">
-              {topic.cites.map((cite) => (
-                <li key={cite.href}>
-                  <a href={cite.href} className="text-accent underline" rel="noopener noreferrer">
-                    {cite.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-3 text-xs text-muted-foreground">SJCC is not a law firm. The linked text controls if this page and the regulation ever disagree.</p>
-          </section>
-        ) : null}
-        {topic.related?.length ? (
-          <section>
-            <h2 className="text-2xl">Related</h2>
-            <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-              {topic.related.map((item) => (
-                <li key={item.href}>
-                  <a href={item.href} className="flex min-h-11 items-center border border-border bg-card px-4 text-sm hover:border-accent">
-                    {item.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-        {topic.referral ? (
-          <section className="border border-border bg-card p-6">
-            <h2 className="text-2xl">Referral only</h2>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{REFERRAL_DISCLOSURE}</p>
-            <a href={REFERRAL_URL} className="mt-4 inline-flex min-h-11 items-center text-sm text-accent underline" rel="noopener noreferrer">
-              Continue to the consortium referral
-            </a>
-            <p className="mt-6 border-t border-border pt-4 text-xs leading-relaxed text-muted-foreground">{REFERRAL_DISCLOSURE}</p>
-          </section>
-        ) : topic.contactOnly ? (
-          <Button asChild>
-            <Link to="/contact">Contact</Link>
-          </Button>
-        ) : (
-          <div className="flex flex-col gap-3 sm:flex-row">
-            {topic.orderHref ? (
-              <Button asChild>
-                <a href={topic.orderHref}>Order a live test</a>
-              </Button>
-            ) : (
-              <Button asChild>
-                <Link to="/onboarding">Start enrollment</Link>
-              </Button>
-            )}
-            <Button asChild variant="outline">
-              <Link to="/contact">Contact</Link>
-            </Button>
-          </div>
-        )}
-      </article>
+            </section>
+          ) : null}
+          {topic.cites?.length ? (
+            <section className="soft-card p-5 sm:p-7">
+              <h2 className="text-2xl">Read the rule, not a summary</h2>
+              <ul className="mt-4 space-y-2 text-sm">
+                {topic.cites.map((cite) => (
+                  <li key={cite.href}>
+                    <a href={cite.href} className="inline-flex min-h-11 items-center text-accent underline decoration-accent/40 underline-offset-4" rel="noopener noreferrer">
+                      {cite.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-xs text-muted-foreground">SJCC is not a law firm. The linked text controls if this page and the regulation ever disagree.</p>
+            </section>
+          ) : null}
+          {topic.related?.length ? (
+            <section>
+              <h2 className="text-2xl">Keep going</h2>
+              <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+                {topic.related.map((item) => (
+                  <li key={item.href}>
+                    <a href={item.href} className="soft-card pop-card flex min-h-16 items-center justify-between gap-3 px-4 py-3 text-sm font-medium">
+                      {item.label}
+                      <span className="text-muted-foreground">→</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+          {topic.referral ? (
+            <section className="rounded-[22px] border border-dashed border-border bg-muted/70 p-6">
+              <h2 className="text-2xl">Referral only</h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{REFERRAL_DISCLOSURE}</p>
+              <a href={REFERRAL_URL} className="mt-4 inline-flex min-h-11 items-center text-sm text-accent underline" rel="noopener noreferrer">
+                Continue to the consortium referral
+              </a>
+            </section>
+          ) : null}
+        </article>
+      </div>
     </PublicShell>
   );
 }
