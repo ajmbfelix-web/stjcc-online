@@ -4,7 +4,15 @@
  * Membership, filings, physicals, and screening packages are not laboratory SKUs.
  */
 
-export type LtsSku = "dot_drug" | "dot_alcohol" | "dot_observed" | "mvr";
+export type LtsSku =
+  | "dot_drug"
+  | "dot_alcohol"
+  | "dot_observed"
+  | "nondot_urine_5"
+  | "nondot_urine_9"
+  | "nondot_urine_10"
+  | "hair"
+  | "mvr";
 
 export type LtsCatalogItem = {
   sku: LtsSku;
@@ -39,6 +47,10 @@ export const LTS_ALLOWLIST: readonly LtsCatalogItem[] = [
   { sku: "dot_drug", label: "DOT urine drug test", ltsProductCode: "LTS-DOT-URINE-5", cents: 7300, estimatedCostCents: 4800, dot: true, clearinghouse: true, offered: true },
   { sku: "dot_alcohol", label: "DOT breath alcohol test", ltsProductCode: "LTS-BAT", cents: 6300, estimatedCostCents: 3500, dot: true, clearinghouse: true, offered: true },
   { sku: "dot_observed", label: "Observed or follow-up DOT drug test", ltsProductCode: "LTS-DOT-URINE-OBS", cents: 10900, estimatedCostCents: 7000, dot: true, clearinghouse: true, offered: true },
+  { sku: "nondot_urine_5", label: "Non-DOT urine 5-panel", ltsProductCode: "LTS-NDOT-URINE-5", cents: 6900, estimatedCostCents: 4200, dot: false, clearinghouse: false, offered: true },
+  { sku: "nondot_urine_9", label: "Non-DOT urine 9-panel", ltsProductCode: "LTS-NDOT-URINE-9", cents: 7900, estimatedCostCents: 5200, dot: false, clearinghouse: false, offered: true },
+  { sku: "nondot_urine_10", label: "Non-DOT urine 10-panel", ltsProductCode: "LTS-NDOT-URINE-10", cents: 8900, estimatedCostCents: 6000, dot: false, clearinghouse: false, offered: true },
+  { sku: "hair", label: "Hair follicle", ltsProductCode: "LTS-HAIR", cents: 14900, estimatedCostCents: 11000, dot: false, clearinghouse: false, offered: true },
   { sku: "mvr", label: "Motor vehicle record", ltsProductCode: "LTS-MVR", cents: 1900, estimatedCostCents: 900, dot: false, clearinghouse: false, offered: true },
 ];
 
@@ -51,7 +63,7 @@ export const ONBOARDING_SERVICES = [
   {
     id: "nondot_testing",
     label: "Hire and non-DOT screens",
-    detail: "Prepaid screens that are live on the catalog. No consortium membership.",
+    detail: "Non-DOT urine panels and hair for staffing and offices. Not a DOT random program and not a Clearinghouse event.",
   },
   {
     id: "mvr",

@@ -1,4 +1,15 @@
 import { Link } from "@tanstack/react-router";
+import {
+  Bell,
+  ClipboardList,
+  FileCheck,
+  FlaskConical,
+  MapPin,
+  Scale,
+  Shield,
+  UserCheck,
+  type LucideIcon,
+} from "lucide-react";
 import { PublicShell, PageIntro } from "@/components/public-shell";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +23,8 @@ import {
   priceLabel,
   type Sku,
 } from "@/lib/billing/catalog";
+import { extraTopics } from "@/lib/site/guides";
+import type { Topic, StepIcon } from "@/lib/site/topic-types";
 
 type Block = {
   h?: string;
@@ -21,15 +34,18 @@ type Block = {
   soon?: boolean;
 };
 
-export type Topic = {
-  eyebrow: string;
-  title: string;
-  lede: string;
-  description: string;
-  blocks: Block[];
-  referral?: boolean;
-  contactOnly?: boolean;
-};
+const ICONS = {
+  clipboard: ClipboardList,
+  flask: FlaskConical,
+  pin: MapPin,
+  file: FileCheck,
+  bell: Bell,
+  shield: Shield,
+  user: UserCheck,
+  scale: Scale,
+} satisfies Record<string, LucideIcon>;
+
+export type { Topic, StepIcon };
 
 function PriceRows({ skus, soon }: { skus: readonly Sku[]; soon?: boolean }) {
   return (
@@ -88,6 +104,70 @@ export function TopicView({ topic }: { topic: Topic }) {
             {block.prices ? <PriceRows skus={block.prices} soon={block.soon} /> : null}
           </section>
         ))}
+        {topic.steps?.length ? (
+          <section>
+            <h2 className="text-2xl">How it moves</h2>
+            <ol className="mt-4 space-y-3">
+              {topic.steps.map((step, index) => {
+                const Icon = ICONS[step.icon];
+                return (
+                  <li key={step.title} className="flex gap-3 border border-border bg-card p-4">
+                    <span className="flex size-11 shrink-0 items-center justify-center bg-muted text-accent">
+                      <Icon className="size-5" strokeWidth={1.75} aria-hidden />
+                    </span>
+                    <div>
+                      <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">0{index + 1}</p>
+                      <p className="mt-1 font-medium">{step.title}</p>
+                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
+        ) : null}
+        {topic.faqs?.length ? (
+          <section>
+            <h2 className="text-2xl">Questions</h2>
+            <div className="mt-4 divide-y divide-border border border-border bg-card">
+              {topic.faqs.map((faq) => (
+                <details key={faq.q} className="group px-4 py-3">
+                  <summary className="cursor-pointer text-sm font-medium">{faq.q}</summary>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{faq.a}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+        ) : null}
+        {topic.cites?.length ? (
+          <section>
+            <h2 className="text-2xl">Read the rule, not a summary</h2>
+            <ul className="mt-4 space-y-2 text-sm">
+              {topic.cites.map((cite) => (
+                <li key={cite.href}>
+                  <a href={cite.href} className="text-accent underline" rel="noopener noreferrer">
+                    {cite.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-xs text-muted-foreground">SJCC is not a law firm. The linked text controls if this page and the regulation ever disagree.</p>
+          </section>
+        ) : null}
+        {topic.related?.length ? (
+          <section>
+            <h2 className="text-2xl">Related</h2>
+            <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+              {topic.related.map((item) => (
+                <li key={item.href}>
+                  <a href={item.href} className="flex min-h-11 items-center border border-border bg-card px-4 text-sm hover:border-accent">
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
         {topic.referral ? (
           <section className="border border-border bg-card p-6">
             <h2 className="text-2xl">Referral only</h2>
@@ -103,9 +183,15 @@ export function TopicView({ topic }: { topic: Topic }) {
           </Button>
         ) : (
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Button asChild>
-              <Link to="/onboarding">Start enrollment</Link>
-            </Button>
+            {topic.orderHref ? (
+              <Button asChild>
+                <a href={topic.orderHref}>Order a live test</a>
+              </Button>
+            ) : (
+              <Button asChild>
+                <Link to="/onboarding">Start enrollment</Link>
+              </Button>
+            )}
             <Button asChild variant="outline">
               <Link to="/contact">Contact</Link>
             </Button>
@@ -119,7 +205,7 @@ export function TopicView({ topic }: { topic: Topic }) {
 const membership = `Fleet consortium membership is ${money(FLEET_ANNUAL_CENTS)} per year for unlimited testing drivers. Setup is $0. Tests are prepaid and are not included.`;
 const alternate = `A fleet of 2–8 testing drivers can ask for a per-driver quote instead: ${money(FIRST_DRIVER_ANNUAL_CENTS)} for the first testing driver and ${money(ADDITIONAL_DRIVER_ANNUAL_CENTS)} for each additional testing driver that year. The public checkout sells the flat ${money(FLEET_ANNUAL_CENTS)} year.`;
 
-export const TOPICS = {
+const BASE_TOPICS = {
   consortium: {
     eyebrow: "Program",
     title: "One consortium. Private company files.",
@@ -427,6 +513,8 @@ export const TOPICS = {
     ],
   },
 } satisfies Record<string, Topic>;
+
+export const TOPICS: Record<string, Topic> = { ...BASE_TOPICS, ...extraTopics };
 
 export type TopicSlug = keyof typeof TOPICS;
 

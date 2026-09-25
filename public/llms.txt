@@ -15,14 +15,16 @@ Fleet consortium, for motor carriers with 2 or more testing drivers:
 - Tests are extra and prepaid: DOT urine $73, DOT breath alcohol $63, same visit $129, observed or follow-up DOT drug $109, MVR from $19 plus the state fee
 
 Hire screens, for staffing firms and offices:
+- Usually a non-DOT panel, not a DOT test
+- Non-DOT urine 5-panel $69, 9-panel $79, 10-panel $89, hair $149
+- DOT urine only when the job is safety-sensitive under 49 CFR Part 382
 - No membership and no random pool
-- Live prepaid screens only
 
 One testing driver:
 - Not enrolled and not charged
 - Referral only, with a disclosure that SJCC may receive a referral fee
 
-Coming soon, published but not charged: Clearinghouse setup and query administration, backgrounds, PSP, physical referral, BOC-3, UCR, qualification files, supervisor training, written policy, post-SAP follow-up management.
+Coming soon, published but not charged: oral fluid, Clearinghouse setup and query administration, backgrounds (national, county, premium, sex offender, SSN trace, employment, education), PSP, physical referral, BOC-3, UCR, qualification files, supervisor training, written policy, post-SAP follow-up management. Form 2290 and the MCS-150 update are not SJCC checkouts.
 
 FMCSA query credits are $1.25 and must be bought by the employer. SJCC does not buy them and does not claim to file Clearinghouse reports unless designated and accepted.
 
@@ -33,11 +35,25 @@ FMCSA query credits are $1.25 and must be bought by the employer. SJCC does not 
 - Hire screens: https://stjcc.online/hire
 - Pricing: https://stjcc.online/pricing
 - Testing: https://stjcc.online/testing
+- DOT urine: https://stjcc.online/dot-urine
+- Non-DOT panels: https://stjcc.online/non-dot
+- Breath alcohol: https://stjcc.online/breath-alcohol
+- Hair: https://stjcc.online/hair
 - Randoms: https://stjcc.online/randoms
 - Pre-employment: https://stjcc.online/pre-employment
 - Post-accident: https://stjcc.online/post-accident
+- Reasonable suspicion: https://stjcc.online/reasonable-suspicion
+- Return to duty: https://stjcc.online/return-to-duty
+- Supervisor training: https://stjcc.online/supervisor-training
 - MVR: https://stjcc.online/mvr
+- PSP: https://stjcc.online/psp
 - Backgrounds: https://stjcc.online/backgrounds
+- Clearinghouse: https://stjcc.online/clearinghouse
+- Driver files: https://stjcc.online/driver-files
+- Physicals: https://stjcc.online/physicals
+- Written policy: https://stjcc.online/policy
+- Filings: https://stjcc.online/filings
+- All services: https://stjcc.online/services
 - Clearinghouse: https://stjcc.online/clearinghouse
 - Driver files: https://stjcc.online/driver-files
 - Physicals: https://stjcc.online/physicals

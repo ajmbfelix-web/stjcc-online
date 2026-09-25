@@ -2,11 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Wordmark } from "@/components/logo";
 import { Button } from "@/components/ui/button";
-import { liveCatalog } from "@/lib/billing/catalog";
+import { CATALOG, type Sku } from "@/lib/billing/catalog";
 import { pageTitle } from "@/lib/seo";
 
 export const Route = createFileRoute("/screen")({
-  head: () => ({ meta: [{ title: pageTitle("Order a drug test") }, { name: "description", content: "Pay for a DOT drug test. The result goes to the staffing company or employer you name." }] }),
+  head: () => ({ meta: [{ title: pageTitle("Order a drug test") }, { name: "description", content: "Pay for a non-DOT or DOT drug test. Staffing orders usually start with a non-DOT panel." }] }),
   component: Screen,
 });
 
@@ -61,15 +61,18 @@ function Screen() {
       <div className="mx-auto max-w-3xl px-4 py-12">
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-accent">Staffing and one-off screens</p>
         <h1 className="mt-4 text-5xl">Order the test. Pay first.</h1>
-        <p className="mt-4 max-w-xl text-muted-foreground">Pay first. Only live catalog items are listed. The order stays here until the testing partner accepts it.</p>
+        <p className="mt-4 max-w-xl text-muted-foreground">Staffing orders start with a non-DOT panel. Choose a DOT test only if the person will do safety-sensitive work under FMCSA rules. Pay first. The order stays here until the testing partner accepts it.</p>
         <form onSubmit={(event) => void submit(event)} className="mt-8 grid gap-4 rounded-xl border border-border bg-card p-6">
           <label className="text-sm">Your name<input name="candidateName" required className="mt-1 h-11 w-full rounded-md border border-border bg-background px-3" /></label>
           <label className="text-sm">Your email<input name="candidateEmail" type="email" required className="mt-1 h-11 w-full rounded-md border border-border bg-background px-3" /></label>
           <label className="text-sm">Staffing company or employer<input name="companyName" required className="mt-1 h-11 w-full rounded-md border border-border bg-background px-3" /></label>
           <label className="text-sm">Email that should receive the result<input name="resultEmail" type="email" required className="mt-1 h-11 w-full rounded-md border border-border bg-background px-3" /></label>
           <label className="text-sm">Test
-            <select name="sku" className="mt-1 h-11 w-full rounded-md border border-border bg-background px-3">
-              {liveCatalog().map((item) => <option key={item.sku} value={item.sku}>{item.label} — ${(item.cents / 100).toFixed(0)}</option>)}
+            <select name="sku" defaultValue="nondot_urine_5" className="mt-1 h-11 w-full rounded-md border border-border bg-background px-3">
+              {(["nondot_urine_5", "nondot_urine_9", "nondot_urine_10", "hair", "dot_drug", "dot_alcohol", "dot_combo", "dot_observed", "mvr"] as const satisfies readonly Sku[]).map((sku) => {
+                const item = CATALOG[sku];
+                return <option key={sku} value={sku}>{item.label} — ${(item.cents / 100).toFixed(0)}</option>;
+              })}
             </select>
           </label>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}

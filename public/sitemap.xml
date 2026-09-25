@@ -8,9 +8,20 @@
   <url><loc>https://stjcc.online/service-area</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://stjcc.online/pricing</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
   <url><loc>https://stjcc.online/testing</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://stjcc.online/dot-urine</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://stjcc.online/non-dot</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://stjcc.online/breath-alcohol</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://stjcc.online/hair</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://stjcc.online/oral-fluid</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://stjcc.online/randoms</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://stjcc.online/pre-employment</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://stjcc.online/post-accident</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://stjcc.online/reasonable-suspicion</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://stjcc.online/return-to-duty</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://stjcc.online/supervisor-training</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://stjcc.online/services</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://stjcc.online/psp</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://stjcc.online/policy</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>https://stjcc.online/mvr</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://stjcc.online/backgrounds</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://stjcc.online/clearinghouse</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>

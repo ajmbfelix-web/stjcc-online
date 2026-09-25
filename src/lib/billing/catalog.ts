@@ -16,6 +16,11 @@ export type Sku =
   | "dot_alcohol"
   | "dot_combo"
   | "dot_observed"
+  | "nondot_urine_5"
+  | "nondot_urine_9"
+  | "nondot_urine_10"
+  | "hair"
+  | "oral_fluid"
   | "mvr"
   | "ch_setup"
   | "ch_query"
@@ -24,6 +29,10 @@ export type Sku =
   | "bg_basic"
   | "bg_county_pack"
   | "bg_premium"
+  | "bg_sor"
+  | "bg_ssn"
+  | "bg_employment"
+  | "bg_education"
   | "prehire"
   | "training"
   | "policy"
@@ -52,6 +61,11 @@ export const CATALOG: Record<Sku, CatalogItem> = {
   dot_alcohol: { sku: "dot_alcohol", label: "DOT breath alcohol test", cents: 6300, estimatedCostCents: 3500, clearinghouse: true, dot: true, live: true, ltsProductCode: "LTS-BAT" },
   dot_combo: { sku: "dot_combo", label: "DOT drug and BAT, same visit", cents: 12900, estimatedCostCents: 8300, clearinghouse: true, dot: true, live: true, ltsProductCode: "", note: "One charge. Dispatched as a drug order and a breath-alcohol order." },
   dot_observed: { sku: "dot_observed", label: "Observed or follow-up DOT drug test", cents: 10900, estimatedCostCents: 7000, clearinghouse: true, dot: true, live: true, ltsProductCode: "LTS-DOT-URINE-OBS" },
+  nondot_urine_5: { sku: "nondot_urine_5", label: "Non-DOT urine 5-panel", cents: 6900, estimatedCostCents: 4200, clearinghouse: false, dot: false, live: true, ltsProductCode: "LTS-NDOT-URINE-5", note: "Employer policy. Does not satisfy a required DOT test." },
+  nondot_urine_9: { sku: "nondot_urine_9", label: "Non-DOT urine 9-panel", cents: 7900, estimatedCostCents: 5200, clearinghouse: false, dot: false, live: true, ltsProductCode: "LTS-NDOT-URINE-9", note: "Employer policy. Not a DOT panel." },
+  nondot_urine_10: { sku: "nondot_urine_10", label: "Non-DOT urine 10-panel", cents: 8900, estimatedCostCents: 6000, clearinghouse: false, dot: false, live: true, ltsProductCode: "LTS-NDOT-URINE-10", note: "Employer policy. Not a DOT panel." },
+  hair: { sku: "hair", label: "Hair follicle", cents: 14900, estimatedCostCents: 11000, clearinghouse: false, dot: false, live: true, ltsProductCode: "LTS-HAIR", note: "Not a substitute for a required DOT urine test." },
+  oral_fluid: { sku: "oral_fluid", label: "Oral fluid drug test", cents: 7900, estimatedCostCents: 0, clearinghouse: false, dot: false, live: false, note: "Coming soon. Not a DOT urine substitute." },
   mvr: { sku: "mvr", label: "Motor vehicle record", cents: 1900, estimatedCostCents: 900, clearinghouse: false, dot: false, live: true, ltsProductCode: "LTS-MVR", note: "SJCC fee. The state DMV fee is extra and passed through." },
   ch_setup: { sku: "ch_setup", label: "Assisted Clearinghouse setup", cents: 20900, estimatedCostCents: 0, clearinghouse: false, dot: false, live: false },
   ch_query: { sku: "ch_query", label: "Clearinghouse query administration", cents: 1900, estimatedCostCents: 0, clearinghouse: false, dot: false, live: false, note: "SJCC admin fee per driver per year. FMCSA credits are bought by the employer." },
@@ -60,6 +74,10 @@ export const CATALOG: Record<Sku, CatalogItem> = {
   bg_basic: { sku: "bg_basic", label: "Basic background", cents: 4900, estimatedCostCents: 0, clearinghouse: false, dot: false, live: false },
   bg_county_pack: { sku: "bg_county_pack", label: "Background and county", cents: 7900, estimatedCostCents: 0, clearinghouse: false, dot: false, live: false },
   bg_premium: { sku: "bg_premium", label: "Premium background", cents: 14900, estimatedCostCents: 0, clearinghouse: false, dot: false, live: false },
+  bg_sor: { sku: "bg_sor", label: "Sex offender registry", cents: 1900, estimatedCostCents: 0, clearinghouse: false, dot: false, live: false },
+  bg_ssn: { sku: "bg_ssn", label: "SSN trace", cents: 1900, estimatedCostCents: 0, clearinghouse: false, dot: false, live: false },
+  bg_employment: { sku: "bg_employment", label: "Employment verification", cents: 3900, estimatedCostCents: 0, clearinghouse: false, dot: false, live: false },
+  bg_education: { sku: "bg_education", label: "Education verification", cents: 3900, estimatedCostCents: 0, clearinghouse: false, dot: false, live: false },
   prehire: { sku: "prehire", label: "Pre-hire pack", cents: 10900, estimatedCostCents: 0, clearinghouse: false, dot: false, live: false, note: "Basic background plus a non-DOT 5-panel." },
   training: { sku: "training", label: "Supervisor reasonable-suspicion training", cents: 5900, estimatedCostCents: 0, clearinghouse: false, dot: false, live: false },
   policy: { sku: "policy", label: "Written drug and alcohol policy", cents: 4900, estimatedCostCents: 0, clearinghouse: false, dot: false, live: false },

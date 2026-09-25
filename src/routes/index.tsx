@@ -51,7 +51,7 @@ function Home() {
             <Link to="/hire" className="border border-border bg-card p-5 hover:border-accent">
               <p className="font-mono text-xs uppercase tracking-widest text-accent">Hire screen</p>
               <p className="mt-3 text-2xl">Staffing and offices</p>
-              <p className="mt-2 text-sm text-muted-foreground">No membership. No random pool. Pay for the live screen you order.</p>
+              <p className="mt-2 text-sm text-muted-foreground">Non-DOT panels for staffing. DOT only if the job is safety-sensitive.</p>
             </Link>
             <Link to="/owner-operators" className="border border-border bg-card p-5 hover:border-accent">
               <p className="font-mono text-xs uppercase tracking-widest text-accent">One driver</p>
@@ -63,11 +63,12 @@ function Home() {
       </section>
 
       <section className="border-b border-border">
-        <div className="mx-auto grid max-w-6xl gap-px bg-border sm:grid-cols-3">
+        <div className="mx-auto grid max-w-6xl gap-px bg-border sm:grid-cols-2 lg:grid-cols-4">
           {[
             ["Membership", priceLabel(FLEET_ANNUAL_CENTS), "per year · unlimited testing drivers"],
-            ["DOT urine", priceLabel(CATALOG.dot_drug.cents), "prepaid, any DOT reason"],
-            ["Breath alcohol", priceLabel(CATALOG.dot_alcohol.cents), "prepaid, separate from the drug test"],
+            ["DOT urine", priceLabel(CATALOG.dot_drug.cents), "any DOT reason"],
+            ["Non-DOT 5-panel", priceLabel(CATALOG.nondot_urine_5.cents), "staffing and offices"],
+            ["Breath alcohol", priceLabel(CATALOG.dot_alcohol.cents), "its own test, not a urine line"],
           ].map(([label, price, detail]) => (
             <div key={label} className="bg-background px-4 py-6 sm:px-6">
               <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">{label}</p>
@@ -83,6 +84,7 @@ function Home() {
         <h2 className="mt-3 text-3xl">Live where we can fulfill it. Marked when we cannot.</h2>
         <div className="mt-8 grid gap-px border border-border bg-border sm:grid-cols-2">
           {[
+            ["/non-dot", "Non-DOT panels", "Live", "5-, 9-, and 10-panel urine, plus hair, for staffing and offices."],
             ["/testing", "DOT testing", "Live", "Urine, breath alcohol, same visit, and observed drug tests."],
             ["/randoms", "Random pool", "Live", "One combined hat for accepted fleets. Private files stay private."],
             ["/mvr", "Driving records", "Live", "From $19 plus the state fee. No invented 50-state table."],

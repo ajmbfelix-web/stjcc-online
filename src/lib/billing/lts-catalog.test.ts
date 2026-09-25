@@ -11,7 +11,11 @@ describe("SJCC catalog", () => {
     assert.equal(CATALOG.dot_combo.cents, 12900);
     assert.equal(CATALOG.dot_combo.live, true);
     assert.equal(CATALOG.dot_observed.cents, 10900);
-    assert.equal(CATALOG.mvr.cents, 1900);
+    assert.equal(CATALOG.nondot_urine_5.live, true);
+    assert.equal(CATALOG.nondot_urine_5.cents, 6900);
+    assert.equal(CATALOG.hair.live, true);
+    assert.equal(CATALOG.oral_fluid.live, false);
+    assert.throws(() => requireLiveItem("oral_fluid"), /coming soon/);
     assert.equal(CATALOG.ch_setup.live, false);
     assert.equal(CATALOG.bg_basic.live, false);
     assert.equal(CATALOG.physical.live, false);
@@ -19,7 +23,7 @@ describe("SJCC catalog", () => {
     assert.throws(() => requireLiveItem("bg_basic"), /coming soon/);
     assert.throws(() => requireLiveItem("consortium"), /Unknown service/);
     const lab = LTS_ALLOWLIST.map((item) => item.sku).sort();
-    assert.deepEqual(lab, ["dot_alcohol", "dot_drug", "dot_observed", "mvr"]);
+    assert.deepEqual(lab, ["dot_alcohol", "dot_drug", "dot_observed", "hair", "mvr", "nondot_urine_10", "nondot_urine_5", "nondot_urine_9"]);
     for (const sku of lab) assert.ok(ltsItem(sku)?.ltsProductCode.startsWith("LTS-"));
     assert.equal(ltsItem("dot_combo"), null);
     assert.equal(ltsItem("clearinghouse_query"), null);
